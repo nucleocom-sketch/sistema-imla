@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+:root {
+  --background: #eef7f7;
+  --foreground: #16323a;
+
+  --imla-teal: #4fc3d1;
+  --imla-teal-dark: #2fa4b3;
+  --imla-green: #a8cf45;
+  --imla-green-dark: #8bb432;
+  --imla-pink: #ff81ba;
+  --imla-yellow: #ffc713;
+  --imla-purple: #6741d9;
+
+  /* Cor "de sistema" ativa: azul na Intranet, verde no Pedagógico/Apadrinhamento */
+  --imla-accent: var(--imla-teal);
+  --imla-accent-dark: var(--imla-teal-dark);
+
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 8px 32px rgba(22, 78, 90, 0.14);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-imla-teal: var(--imla-teal);
+  --color-imla-teal-dark: var(--imla-teal-dark);
+  --color-imla-green: var(--imla-green);
+  --color-imla-green-dark: var(--imla-green-dark);
+  --color-imla-pink: var(--imla-pink);
+  --color-imla-yellow: var(--imla-yellow);
+  --color-imla-purple: var(--imla-purple);
+  --color-imla-accent: var(--imla-accent);
+  --color-imla-accent-dark: var(--imla-accent-dark);
+  --font-sans: var(--font-nunito);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b1f24;
+    --foreground: #eef7f7;
+    --glass-bg: rgba(16, 40, 46, 0.55);
+    --glass-bg-strong: rgba(16, 40, 46, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-nunito), sans-serif;
+  min-height: 100dvh;
+}
+
+/* ---------- Fundo com manchas de luz (mesh gradient) ---------- */
+.imla-mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--background);
+}
+
+.imla-mesh-bg::before,
+.imla-mesh-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+
+.imla-mesh-bg::before {
+  width: 45vw;
+  height: 45vw;
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, var(--imla-teal) 0%, transparent 70%);
+}
+
+.imla-mesh-bg::after {
+  width: 40vw;
+  height: 40vw;
+  bottom: -15%;
+  right: -10%;
+  background: radial-gradient(circle, var(--imla-green) 0%, transparent 70%);
+}
+
+.imla-mesh-blob-pink {
+  position: absolute;
+  width: 30vw;
+  height: 30vw;
+  top: 30%;
+  right: 15%;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.35;
+  background: radial-gradient(circle, var(--imla-pink) 0%, transparent 70%);
+}
+
+/* ---------- Liquid glass ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.glass-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(22, 78, 90, 0.2);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 209, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

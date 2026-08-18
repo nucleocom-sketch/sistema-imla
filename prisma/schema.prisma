@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Papel {
+  ADMIN
+  NUCLEO
+  PADRINHO
+  VISITANTE
+}
+
+enum Nucleo {
+  COZINHA
+  COMUNICACAO
+  PEDAGOGICO
+  CAPTACAO
+  FINANCEIRO
+  APADRINHAMENTO
+}
+
+enum Sala {
+  ROSA
+  AMARELA
+  VERDE
+  AZUL
+  CIRANDA_MUNDO
+}
+
+enum StatusTarefa {
+  CRIADA
+  EM_ANDAMENTO
+  CONCLUIDA
+}
+
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+}
+
+enum NivelAlfabetizacao {
+  PRE_SILABICO
+  SILABICO_SEM_VALOR
+  SILABICO_COM_VALOR
+  SILABICO_ALFABETICO
+  ALFABETICO_INICIAL
+  ALFABETICO_FINAL
+  ALFABETICO_ORTOGRAFICO
+}
+
+enum EtapaAvaliacao {
+  PRIMEIRA
+  SEGUNDA
+  FINAL
+}
+
+enum NivelMare {
+  BAIXA
+  VAZANTE
+  ENCHENTE
+  ALTA
+  CHEIA
+}
+
+model Usuario {
+  id            String    @id @default(cuid())
+  nome          String
+  email         String    @unique
+  senhaHash     String
+  papel         Papel     @default(NUCLEO)
+  nucleo        Nucleo?
+  criadoEm      DateTime  @default(now())
+
+  postagens     Postagem[]
+  tarefasCriadas Tarefa[]
+  lembretes     Lembrete[]
+  solicitacoesEnviadas Solicitacao[] @relation("solicitacoesEnviadas")
+}
+
+model Aluno {
+  id           String   @id @default(cuid())
+  nome         String
+  idade        Int?
+  comunidade   String?
+  turma        String?
+  sala         Sala
+  padrinho     String?
+  criadoEm     DateTime @default(now())
+
+  matriculaTurnoEstendido MatriculaTurnoEstendido?
+  avaliacoesMare  AvaliacaoMare[]
+  avaliacoesAlfabetizacao AvaliacaoAlfabetizacao[]
+}
+
+model MatriculaTurnoEstendido {
+  id        String   @id @default(cuid())
+  aluno     Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  alunoId   String   @unique
+  criadoEm  DateTime @default(now())
+}
+
+model AvaliacaoAlfabetizacao {
+  id          String             @id @default(cuid())
+  aluno       Aluno              @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  alunoId     String
+  ano         Int
+  etapa       EtapaAvaliacao
+  nivel       NivelAlfabetizacao
+  evidencias  String[]
+  observacoes String?
+  criadoEm    DateTime           @default(now())
+
+  @@unique([alunoId, ano, etapa])
+}
+
+model AvaliacaoMare {
+  id             String    @id @default(cuid())
+  aluno          Aluno     @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  alunoId        String
+  semestre       String
+  notas          Json
+  observacoes    String?
+  criadoEm       DateTime  @default(now())
+
+  @@unique([alunoId, semestre])
+}
+
+model Postagem {
+  id        String   @id @default(cuid())
+  nucleo    Nucleo
+  texto     String
+  autor     Usuario  @relation(fields: [autorId], references: [id])
+  autorId   String
+  criadoEm  DateTime @default(now())
+}
+
+model Tarefa {
+  id          String       @id @default(cuid())
+  nucleo      Nucleo
+  titulo      String
+  descricao   String?
+  status      StatusTarefa @default(CRIADA)
+  prioridade  Prioridade   @default(MEDIA)
+  autor       Usuario      @relation(fields: [autorId], references: [id])
+  autorId     String
+  criadoEm    DateTime     @default(now())
+}
+
+model Lembrete {
+  id           String   @id @default(cuid())
+  nucleo       Nucleo
+  titulo       String
+  descricao    String?
+  proximaData  DateTime
+  autor        Usuario  @relation(fields: [autorId], references: [id])
+  autorId      String
+  criadoEm     DateTime @default(now())
+}
+
+model Solicitacao {
+  id           String   @id @default(cuid())
+  nucleoDestino Nucleo
+  assunto      String
+  mensagem     String?
+  publica      Boolean  @default(false)
+  de           Usuario  @relation("solicitacoesEnviadas", fields: [deId], references: [id])
+  deId         String
+  criadoEm     DateTime @default(now())
+}
+
