@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { WaveIndicator } from "@/components/ui/WaveIndicator";
 import {
   SALAS,
   CATEGORIAS_MARE,
@@ -111,7 +112,22 @@ export function ApadrinhamentoView({
 
           {afilhado && (
             <>
-              <GlassCard className="p-5">
+              <GlassCard className="flex flex-wrap items-center gap-5 p-5">
+                {afilhado.avaliacoesAlfabetizacao.length > 0 && (
+                  <WaveIndicator
+                    percent={
+                      ((NIVEIS_ALFABETIZACAO.findIndex(
+                        (n) => n.key === afilhado.avaliacoesAlfabetizacao.at(-1)!.nivel
+                      ) +
+                        1) /
+                        7) *
+                      100
+                    }
+                    size="lg"
+                    sublabel="status maré"
+                  />
+                )}
+                <div>
                 <div className="mb-2 flex flex-wrap items-center gap-3">
                   <p className="text-lg font-extrabold">{afilhado.nome}</p>
                   <span
@@ -130,6 +146,7 @@ export function ApadrinhamentoView({
                   <b>Idade:</b> {afilhado.idade ?? "---"} · <b>Comunidade:</b>{" "}
                   {afilhado.comunidade ?? "---"}
                 </p>
+                </div>
               </GlassCard>
 
               {afilhado.matriculaTurnoEstendido && (
@@ -157,12 +174,7 @@ export function ApadrinhamentoView({
                           const idx = NIVEL_INDEX[nivel] ?? 1;
                           return (
                             <div key={cat} className="text-center">
-                              <div className="mx-auto h-14 w-12 overflow-hidden rounded-lg border border-imla-accent/30 bg-imla-accent/5">
-                                <div
-                                  className="w-full bg-imla-accent"
-                                  style={{ height: `${idx * 20}%`, marginTop: `${100 - idx * 20}%` }}
-                                />
-                              </div>
+                              <WaveIndicator percent={idx * 20} size="sm" className="mx-auto" />
                               <p className="mt-1 text-[10px] font-bold leading-tight text-foreground/60">
                                 {cat}
                               </p>

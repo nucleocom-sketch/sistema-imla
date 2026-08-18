@@ -115,6 +115,60 @@ export async function cadastrar(_prev: FormState, formData: FormData): Promise<F
   redirect("/painel/intranet");
 }
 
+const cadastroPadrinhoSchema = z.object({
+  nome: z.string().min(2, "Informe seu nome completo"),
+  email: z.string().email("Informe um e-mail válido"),
+  senha: z.string().min(6, "A senha deve ter ao menos 6 caracteres"),
+  confirmarSenha: z.string(),
+});
+
+export async function cadastrarPadrinho(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = cadastroPadrinhoSchema.safeParse({
+    nome: formData.get("nome"),
+    email: formData.get("email"),
+    senha: formData.get("senha"),
+    confirmarSenha: formData.get("confirmarSenha"),
+  });
+
+  if (!parsed.success) {
+    return { erro: parsed.error.issues[0]?.message ?? "Dados inválidos" };
+  }
+
+  const { nome, email, senha, confirmarSenha } = parsed.data;
+
+  if (senha !== confirmarSenha) {
+    return { erro: "As senhas não coincidem." };
+  }
+
+  const emailNormalizado = email.trim().toLowerCase();
+
+  const existente = await prisma.usuario.findUnique({ where: { email: emailNormalizado } });
+  if (existente) {
+    return { erro: "Este e-mail já está cadastrado." };
+  }
+
+  const senhaHash = await bcrypt.hash(senha, 12);
+
+  const usuario = await prisma.usuario.create({
+    data: {
+      nome: nome.trim(),
+      email: emailNormalizado,
+      senhaHash,
+      papel: "PADRINHO",
+    },
+  });
+
+  await criarSessao({
+    userId: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    papel: usuario.papel,
+    nucleo: usuario.nucleo,
+  });
+
+  redirect("/painel/apadrinhamento");
+}
+
 export async function entrarComoVisitante() {
   await criarSessao({
     userId: "visitante",

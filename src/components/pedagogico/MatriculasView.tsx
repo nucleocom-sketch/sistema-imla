@@ -124,7 +124,9 @@ export function MatriculasView({ alunos }: { alunos: Aluno[] }) {
               />
               <div className="sm:col-span-2">
                 <p className="mb-2 text-xs font-bold text-foreground/50">
-                  Opcional: criar acesso ao Canal do Apadrinhamento
+                  Opcional: informe o e-mail para vincular a conta do Canal do
+                  Apadrinhamento. Se o padrinho já criou a própria conta, deixe a
+                  senha em branco — só o e-mail é necessário para vincular.
                 </p>
               </div>
               <input

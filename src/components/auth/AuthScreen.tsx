@@ -2,7 +2,13 @@
 
 import { useActionState, useState, type CSSProperties } from "react";
 import Image from "next/image";
-import { entrar, cadastrar, entrarComoVisitante, type FormState } from "@/app/(auth)/actions";
+import {
+  entrar,
+  cadastrar,
+  cadastrarPadrinho,
+  entrarComoVisitante,
+  type FormState,
+} from "@/app/(auth)/actions";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { NUCLEOS } from "@/lib/config";
@@ -74,22 +80,22 @@ export function AuthScreen() {
             >
               Entrar
             </button>
-            {lado === "INTRANET" && (
-              <button
-                onClick={() => setAba("cadastro")}
-                className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
-                  aba === "cadastro" ? "bg-imla-accent text-white shadow" : "text-foreground/60"
-                }`}
-              >
-                Criar conta
-              </button>
-            )}
+            <button
+              onClick={() => setAba("cadastro")}
+              className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
+                aba === "cadastro" ? "bg-imla-accent text-white shadow" : "text-foreground/60"
+              }`}
+            >
+              Criar conta
+            </button>
           </div>
 
-          {aba === "login" || lado === "PEDAGOGICO" ? (
+          {aba === "login" ? (
             <FormularioLogin lado={lado} />
+          ) : lado === "INTRANET" ? (
+            <FormularioCadastroNucleo />
           ) : (
-            <FormularioCadastro />
+            <FormularioCadastroPadrinho />
           )}
 
           {lado === "INTRANET" && (
@@ -110,10 +116,9 @@ export function AuthScreen() {
             </>
           )}
 
-          {lado === "PEDAGOGICO" && (
+          {lado === "PEDAGOGICO" && aba === "login" && (
             <p className="mt-5 text-center text-xs font-semibold text-foreground/50">
-              Acesso da coordenação e dos padrinhos/madrinhas. Contas são criadas pela
-              coordenação.
+              Acesso da coordenação e dos padrinhos/madrinhas.
             </p>
           )}
         </GlassCard>
@@ -191,7 +196,7 @@ function FormularioLogin({ lado }: { lado: Lado }) {
   );
 }
 
-function FormularioCadastro() {
+function FormularioCadastroNucleo() {
   const [state, action, pending] = useActionState<FormState, FormData>(cadastrar, null);
 
   return (
@@ -229,6 +234,39 @@ function FormularioCadastro() {
       <Button type="submit" disabled={pending} fullWidth className="mt-1">
         {pending ? "Criando conta..." : "Finalizar cadastro"}
       </Button>
+    </form>
+  );
+}
+
+function FormularioCadastroPadrinho() {
+  const [state, action, pending] = useActionState<FormState, FormData>(cadastrarPadrinho, null);
+
+  return (
+    <form action={action} className="flex flex-col gap-4">
+      <Campo label="Nome completo" name="nome" type="text" placeholder="Seu nome" />
+      <Campo label="E-mail" name="email" type="email" placeholder="voce@email.com" />
+      <Campo label="Senha" name="senha" type="password" placeholder="••••••" />
+      <Campo
+        label="Confirmar senha"
+        name="confirmarSenha"
+        type="password"
+        placeholder="••••••"
+      />
+
+      {state?.erro && (
+        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-500">
+          {state.erro}
+        </p>
+      )}
+
+      <Button type="submit" disabled={pending} fullWidth className="mt-1">
+        {pending ? "Criando conta..." : "Finalizar cadastro"}
+      </Button>
+
+      <p className="text-center text-xs font-semibold text-foreground/50">
+        Depois de criar a conta, avise a coordenação para vincular seu afilhado ou
+        afilhada ao seu e-mail.
+      </p>
     </form>
   );
 }

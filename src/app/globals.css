@@ -131,6 +131,31 @@ body {
   box-shadow: 0 14px 40px rgba(22, 78, 90, 0.2);
 }
 
+/* ---------- Onda animada (indicadores da Tábua da Maré) ---------- */
+@keyframes imla-wave-move {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.imla-wave-anim {
+  animation: imla-wave-move 3.2s linear infinite;
+}
+
+.imla-wave-anim-slow {
+  animation: imla-wave-move 5.5s linear infinite reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imla-wave-anim,
+  .imla-wave-anim-slow {
+    animation: none;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

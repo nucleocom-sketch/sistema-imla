@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { WaveIndicator } from "@/components/ui/WaveIndicator";
 import {
   NIVEIS_ALFABETIZACAO,
   EVIDENCIAS_POR_NIVEL,
@@ -85,29 +86,40 @@ export function TurnoEstendidoView({ alunos }: { alunos: Aluno[] }) {
 
       {alunoSel && (
         <>
-          <GlassCard className="p-5">
-            <div className="mb-3 flex flex-wrap items-center gap-3">
-              <p className="text-lg font-extrabold">{alunoSel.nome}</p>
-              <span
-                className="rounded-full px-3 py-1 text-[11px] font-extrabold uppercase text-white"
-                style={{ backgroundColor: SALAS[alunoSel.sala].cor }}
-              >
-                {SALAS[alunoSel.sala].label}
-              </span>
-            </div>
-            {ultimaAvaliacao ? (
-              <p className="text-sm">
-                Diagnóstico atual:{" "}
+          <GlassCard className="flex flex-wrap items-center gap-5 p-5">
+            <WaveIndicator
+              percent={
+                ultimaAvaliacao
+                  ? ((NIVEIS_ALFABETIZACAO.findIndex((n) => n.key === ultimaAvaliacao.nivel) + 1) / 7) * 100
+                  : 4
+              }
+              size="lg"
+              sublabel="status maré"
+            />
+            <div>
+              <div className="mb-2 flex flex-wrap items-center gap-3">
+                <p className="text-lg font-extrabold">{alunoSel.nome}</p>
                 <span
-                  className="rounded-full px-3 py-1 text-xs font-extrabold"
-                  style={{ backgroundColor: nivelInfo(ultimaAvaliacao.nivel).cor }}
+                  className="rounded-full px-3 py-1 text-[11px] font-extrabold uppercase text-white"
+                  style={{ backgroundColor: SALAS[alunoSel.sala].cor }}
                 >
-                  {nivelInfo(ultimaAvaliacao.nivel).label}
+                  {SALAS[alunoSel.sala].label}
                 </span>
-              </p>
-            ) : (
-              <p className="text-sm text-foreground/50">Sem registro de diagnóstico ainda.</p>
-            )}
+              </div>
+              {ultimaAvaliacao ? (
+                <p className="text-sm">
+                  Diagnóstico atual:{" "}
+                  <span
+                    className="rounded-full px-3 py-1 text-xs font-extrabold"
+                    style={{ backgroundColor: nivelInfo(ultimaAvaliacao.nivel).cor }}
+                  >
+                    {nivelInfo(ultimaAvaliacao.nivel).label}
+                  </span>
+                </p>
+              ) : (
+                <p className="text-sm text-foreground/50">Sem registro de diagnóstico ainda.</p>
+              )}
+            </div>
           </GlassCard>
 
           <GlassCard className="overflow-x-auto p-5">

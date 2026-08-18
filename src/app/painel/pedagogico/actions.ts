@@ -50,15 +50,23 @@ export async function definirPadrinho(formData: FormData) {
     data: { padrinho },
   });
 
-  if (email && senha) {
-    const bcrypt = (await import("bcryptjs")).default;
-    const senhaHash = await bcrypt.hash(senha, 12);
+  if (email) {
+    const existente = await prisma.usuario.findUnique({ where: { email } });
 
-    await prisma.usuario.upsert({
-      where: { email },
-      create: { nome: padrinho, email, senhaHash, papel: "PADRINHO" },
-      update: { nome: padrinho, senhaHash, papel: "PADRINHO" },
-    });
+    if (existente) {
+      // Vincula uma conta já auto-cadastrada pelo padrinho/madrinha (sem mexer na senha).
+      await prisma.usuario.update({
+        where: { email },
+        data: { nome: padrinho, papel: "PADRINHO" },
+      });
+    } else if (senha) {
+      const bcrypt = (await import("bcryptjs")).default;
+      const senhaHash = await bcrypt.hash(senha, 12);
+
+      await prisma.usuario.create({
+        data: { nome: padrinho, email, senhaHash, papel: "PADRINHO" },
+      });
+    }
   }
 
   revalidatePath("/painel/pedagogico/matriculas");
