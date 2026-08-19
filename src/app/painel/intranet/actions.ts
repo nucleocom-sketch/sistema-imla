@@ -116,6 +116,42 @@ export async function excluirLembrete(formData: FormData) {
   revalidatePath("/painel/intranet");
 }
 
+const urlSchema = z
+  .string()
+  .min(1)
+  .refine((v) => /^https:\/\//i.test(v) || /^http:\/\//i.test(v), {
+    message: "O link precisa começar com http:// ou https://",
+  });
+
+export async function criarLink(formData: FormData) {
+  const nucleo = formData.get("nucleo") as Nucleo;
+  const sessao = await exigirMembroDoNucleo(nucleo);
+
+  const titulo = z.string().min(1).max(60).parse(formData.get("titulo"));
+  const url = urlSchema.parse(formData.get("url"));
+  const publico = formData.get("publico") === "true";
+  const confirmouPublico = formData.get("confirmouPublico") === "true";
+
+  if (publico && !confirmouPublico) {
+    throw new Error("Confirme que deseja tornar este link público antes de salvar.");
+  }
+
+  await prisma.linkNucleo.create({
+    data: { nucleo, titulo, url, publico, autorId: sessao.userId },
+  });
+
+  revalidatePath("/painel/intranet");
+}
+
+export async function excluirLink(formData: FormData) {
+  const id = z.string().parse(formData.get("id"));
+  const nucleo = formData.get("nucleo") as Nucleo;
+  await exigirMembroDoNucleo(nucleo);
+
+  await prisma.linkNucleo.delete({ where: { id } });
+  revalidatePath("/painel/intranet");
+}
+
 export async function enviarSolicitacao(formData: FormData) {
   const nucleoOrigem = formData.get("nucleoOrigem") as Nucleo;
   const sessao = await exigirMembroDoNucleo(nucleoOrigem);

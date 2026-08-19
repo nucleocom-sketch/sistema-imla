@@ -4,6 +4,13 @@ import { SignJWT, jwtVerify } from "jose";
 import type { Nucleo, Papel } from "@prisma/client";
 
 const COOKIE_NAME = "imla_session";
+
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "SESSION_SECRET não configurado. Defina essa variável de ambiente antes de iniciar o app em produção — dados de crianças estão em jogo, não use um valor padrão."
+  );
+}
+
 const secretKey = new TextEncoder().encode(
   process.env.SESSION_SECRET ?? "instituto-mae-lalu-dev-secret-change-me"
 );

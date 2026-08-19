@@ -123,12 +123,28 @@ body {
 }
 
 .glass-hover {
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease,
+    background 0.25s ease;
 }
 
 .glass-hover:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.015);
   box-shadow: 0 14px 40px rgba(22, 78, 90, 0.2);
+}
+
+.glass-hover:active {
+  transform: translateY(-1px) scale(1.005);
+  transition-duration: 0.08s;
+}
+
+button,
+a {
+  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.2s ease;
+}
+
+button:active,
+a:active {
+  transform: scale(0.97);
 }
 
 /* ---------- Onda animada (indicadores da Tábua da Maré) ---------- */

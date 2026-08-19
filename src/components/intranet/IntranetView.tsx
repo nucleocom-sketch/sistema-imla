@@ -18,6 +18,8 @@ import {
   excluirTarefa,
   criarLembrete,
   excluirLembrete,
+  criarLink,
+  excluirLink,
   enviarSolicitacao,
 } from "@/app/painel/intranet/actions";
 
@@ -48,6 +50,14 @@ type Solicitacao = {
   criadoEm: Date;
   de: { nome: string; nucleo: NucleoKey | null };
 };
+type LinkItem = {
+  id: string;
+  titulo: string;
+  url: string;
+  publico: boolean;
+  criadoEm: Date;
+  autor: Autor;
+};
 
 type Props = {
   nucleoAtual: NucleoKey;
@@ -57,12 +67,14 @@ type Props = {
   tarefas: Tarefa[];
   lembretes: Lembrete[];
   caixaEntrada: Solicitacao[];
+  links: LinkItem[];
 };
 
 const ABAS = [
   { key: "novidades", label: "Novidades" },
   { key: "tarefas", label: "Demandas" },
   { key: "lembretes", label: "Avisos" },
+  { key: "links", label: "Links" },
   { key: "solicitacoes", label: "Solicitações" },
 ] as const;
 
@@ -83,6 +95,7 @@ export function IntranetView({
   tarefas,
   lembretes,
   caixaEntrada,
+  links,
 }: Props) {
   const [aba, setAba] = useState<AbaKey>("novidades");
   const cfg = NUCLEOS[nucleoAtual];
@@ -138,6 +151,9 @@ export function IntranetView({
       )}
       {aba === "lembretes" && (
         <AbaLembretes nucleoAtual={nucleoAtual} podeEditar={podeEditar} lembretes={lembretes} />
+      )}
+      {aba === "links" && (
+        <AbaLinks nucleoAtual={nucleoAtual} podeEditar={podeEditar} links={links} />
       )}
       {aba === "solicitacoes" && (
         <AbaSolicitacoes
@@ -449,6 +465,177 @@ function AbaLembretes({
             </GlassCard>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function AbaLinks({
+  nucleoAtual,
+  podeEditar,
+  links,
+}: {
+  nucleoAtual: NucleoKey;
+  podeEditar: boolean;
+  links: LinkItem[];
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [ehPublico, setEhPublico] = useState(false);
+  const [confirmou, setConfirmou] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function acaoCriar(formData: FormData) {
+    setErro(null);
+    try {
+      await criarLink(formData);
+      setAberto(false);
+      setEhPublico(false);
+      setConfirmou(false);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Não foi possível salvar o link.");
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {podeEditar && (
+        <div>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setAberto((v) => !v);
+              setErro(null);
+            }}
+          >
+            🔗 Novo link
+          </Button>
+          {aberto && (
+            <GlassCard className="mt-3 p-5">
+              <form
+                action={acaoCriar}
+                className="flex flex-col gap-3"
+                onSubmit={(e) => {
+                  if (ehPublico && !confirmou) {
+                    e.preventDefault();
+                    setErro("Confirme que deseja tornar este link público antes de salvar.");
+                  }
+                }}
+              >
+                <input type="hidden" name="nucleo" value={nucleoAtual} />
+                <input
+                  name="titulo"
+                  required
+                  maxLength={60}
+                  placeholder="Nome do botão (ex: Planilha de custos)"
+                  className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                />
+                <input
+                  name="url"
+                  type="url"
+                  required
+                  placeholder="https://..."
+                  className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                />
+
+                <div className="flex items-center gap-4 text-sm font-semibold">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="publico"
+                      value="false"
+                      checked={!ehPublico}
+                      onChange={() => {
+                        setEhPublico(false);
+                        setConfirmou(false);
+                        setErro(null);
+                      }}
+                    />
+                    🔒 Privado (só o núcleo)
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="publico"
+                      value="true"
+                      checked={ehPublico}
+                      onChange={() => {
+                        setEhPublico(true);
+                        setConfirmou(false);
+                      }}
+                    />
+                    🌐 Público (todos veem)
+                  </label>
+                </div>
+
+                {ehPublico && (
+                  <div className="rounded-xl border border-imla-yellow/50 bg-imla-yellow/10 p-3">
+                    <p className="text-xs font-bold text-foreground/80">
+                      ⚠️ Links públicos ficam visíveis para qualquer pessoa que acessar a
+                      Intranet, incluindo visitantes. Tenha certeza de que este link pode
+                      ser visto por todos antes de confirmar.
+                    </p>
+                    <label className="mt-2 flex items-center gap-2 text-xs font-bold">
+                      <input
+                        type="checkbox"
+                        checked={confirmou}
+                        onChange={(e) => setConfirmou(e.target.checked)}
+                      />
+                      Confirmo que quero tornar este link público
+                    </label>
+                  </div>
+                )}
+
+                <input type="hidden" name="confirmouPublico" value={confirmou ? "true" : "false"} />
+
+                {erro && (
+                  <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-500">
+                    {erro}
+                  </p>
+                )}
+
+                <Button type="submit" className="self-end" disabled={ehPublico && !confirmou}>
+                  Salvar link
+                </Button>
+              </form>
+            </GlassCard>
+          )}
+        </div>
+      )}
+
+      {links.length === 0 && <p className="text-sm text-foreground/50">Nenhum link cadastrado.</p>}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {links.map((l) => (
+          <GlassCard key={l.id} hover className="p-4">
+            <a
+              href={l.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="block text-sm font-extrabold text-imla-accent-dark hover:underline"
+            >
+              🔗 {l.titulo}
+            </a>
+            <span
+              className={`mt-2 inline-block rounded-full px-3 py-1 text-[10px] font-extrabold uppercase ${
+                l.publico ? "bg-imla-accent/10 text-imla-accent-dark" : "bg-black/5 text-foreground/60"
+              }`}
+            >
+              {l.publico ? "🌐 Público" : "🔒 Privado"}
+            </span>
+            <p className="mt-2 text-[10px] font-semibold text-foreground/40">
+              Adicionado por {l.autor.nome}
+            </p>
+            {podeEditar && (
+              <form action={excluirLink} className="mt-2">
+                <input type="hidden" name="id" value={l.id} />
+                <input type="hidden" name="nucleo" value={nucleoAtual} />
+                <button type="submit" className="text-xs font-bold text-red-500">
+                  🗑️ Excluir
+                </button>
+              </form>
+            )}
+          </GlassCard>
+        ))}
       </div>
     </div>
   );

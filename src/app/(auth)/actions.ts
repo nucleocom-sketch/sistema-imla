@@ -25,18 +25,44 @@ export async function entrar(_prev: FormState, formData: FormData): Promise<Form
   }
 
   const { email, senha } = parsed.data;
+  const erroGenerico = { erro: "E-mail ou senha incorretos." };
 
   const usuario = await prisma.usuario.findUnique({
     where: { email: email.trim().toLowerCase() },
   });
 
   if (!usuario) {
-    return { erro: "E-mail não encontrado." };
+    // Mesma mensagem de senha incorreta, para não revelar quais e-mails existem.
+    return erroGenerico;
+  }
+
+  if (usuario.bloqueadoAte && usuario.bloqueadoAte > new Date()) {
+    const minutos = Math.ceil((usuario.bloqueadoAte.getTime() - Date.now()) / 60000);
+    return { erro: `Muitas tentativas. Tente novamente em ${minutos} minuto(s).` };
   }
 
   const senhaOk = await bcrypt.compare(senha, usuario.senhaHash);
   if (!senhaOk) {
-    return { erro: "Senha incorreta." };
+    const tentativas = usuario.tentativasFalhas + 1;
+    const bloqueado = tentativas >= 5;
+    await prisma.usuario.update({
+      where: { id: usuario.id },
+      data: {
+        tentativasFalhas: bloqueado ? 0 : tentativas,
+        bloqueadoAte: bloqueado ? new Date(Date.now() + 15 * 60 * 1000) : null,
+      },
+    });
+    if (bloqueado) {
+      return { erro: "Muitas tentativas incorretas. Conta bloqueada por 15 minutos." };
+    }
+    return erroGenerico;
+  }
+
+  if (usuario.tentativasFalhas > 0 || usuario.bloqueadoAte) {
+    await prisma.usuario.update({
+      where: { id: usuario.id },
+      data: { tentativasFalhas: 0, bloqueadoAte: null },
+    });
   }
 
   await criarSessao({

@@ -14,12 +14,14 @@ enum Papel {
 }
 
 enum Nucleo {
-  COZINHA
-  COMUNICACAO
+  ADMINISTRATIVO_FINANCEIRO
+  PROJETOS_CAPTACAO
+  JURIDICO_SOCIAL
+  TECNOLOGIA_COMUNICACAO
+  ESPORTE_LAZER
   PEDAGOGICO
-  CAPTACAO
-  FINANCEIRO
-  APADRINHAMENTO
+  SAUDE_MEIO_AMBIENTE
+  APOIO_INFRAESTRUTURA
 }
 
 enum Sala {
@@ -73,12 +75,15 @@ model Usuario {
   senhaHash     String
   papel         Papel     @default(NUCLEO)
   nucleo        Nucleo?
+  tentativasFalhas Int    @default(0)
+  bloqueadoAte  DateTime?
   criadoEm      DateTime  @default(now())
 
   postagens     Postagem[]
   tarefasCriadas Tarefa[]
   lembretes     Lembrete[]
   solicitacoesEnviadas Solicitacao[] @relation("solicitacoesEnviadas")
+  links         LinkNucleo[]
 }
 
 model Aluno {
@@ -159,6 +164,17 @@ model Lembrete {
   autor        Usuario  @relation(fields: [autorId], references: [id])
   autorId      String
   criadoEm     DateTime @default(now())
+}
+
+model LinkNucleo {
+  id        String   @id @default(cuid())
+  nucleo    Nucleo
+  titulo    String
+  url       String
+  publico   Boolean  @default(false)
+  autor     Usuario  @relation(fields: [autorId], references: [id])
+  autorId   String
+  criadoEm  DateTime @default(now())
 }
 
 model Solicitacao {

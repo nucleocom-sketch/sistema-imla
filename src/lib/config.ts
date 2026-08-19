@@ -1,10 +1,12 @@
 export const NUCLEOS = {
-  COZINHA: { label: "Cozinha e Nutrição", icon: "🍳" },
-  COMUNICACAO: { label: "Comunicação", icon: "📣" },
+  ADMINISTRATIVO_FINANCEIRO: { label: "Administrativo e Financeiro", icon: "💰" },
+  PROJETOS_CAPTACAO: { label: "Projetos e Captação de Recursos", icon: "🤝" },
+  JURIDICO_SOCIAL: { label: "Jurídico Social", icon: "⚖️" },
+  TECNOLOGIA_COMUNICACAO: { label: "Tecnologia e Comunicação", icon: "💻" },
+  ESPORTE_LAZER: { label: "Esporte e Lazer", icon: "⚽" },
   PEDAGOGICO: { label: "Pedagógico", icon: "📚" },
-  CAPTACAO: { label: "Captação de Recursos", icon: "🤝" },
-  FINANCEIRO: { label: "Financeiro", icon: "💰" },
-  APADRINHAMENTO: { label: "Apadrinhamento", icon: "💌" },
+  SAUDE_MEIO_AMBIENTE: { label: "Saúde e Meio Ambiente", icon: "🌱" },
+  APOIO_INFRAESTRUTURA: { label: "Apoio e Infraestrutura", icon: "🛠️" },
 } as const;
 
 export type NucleoKey = keyof typeof NUCLEOS;
