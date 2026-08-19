@@ -91,6 +91,17 @@ function formatarData(data: Date) {
   });
 }
 
+// proximaData vem do <input type="date"> como um calendário puro (sem hora).
+// Formatar em UTC evita que o fuso local jogue a data um dia para trás.
+function formatarDataCalendario(data: Date) {
+  return new Date(data).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function IntranetView({
   nucleoAtual,
   podeEditar,
@@ -406,7 +417,10 @@ function AbaLembretes({
 }) {
   const [aberto, setAberto] = useState(false);
   const [desabilitado, setDesabilitado] = useState(false);
-  const hoje = new Date();
+  const agora = new Date();
+  // proximaData é salva como meia-noite UTC do dia escolhido no calendário —
+  // comparar contra a mesma referência evita marcar o dia de hoje como atrasado.
+  const hoje = new Date(Date.UTC(agora.getFullYear(), agora.getMonth(), agora.getDate()));
 
   return (
     <div className="flex flex-col gap-4">
@@ -467,7 +481,7 @@ function AbaLembretes({
                   atrasado ? "bg-red-500/10 text-red-500" : "bg-imla-accent/10 text-imla-accent-dark"
                 }`}
               >
-                {atrasado ? "⚠️" : "📅"} {formatarData(l.proximaData)}
+                {atrasado ? "⚠️" : "📅"} {formatarDataCalendario(l.proximaData)}
               </span>
               <p className="mt-2 text-[10px] font-semibold text-foreground/40">
                 Criado por {l.autor.nome}

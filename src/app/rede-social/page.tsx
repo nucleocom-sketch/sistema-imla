@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NUCLEOS } from "@/lib/config";
 
+export const dynamic = "force-dynamic";
+
 function formatarData(data: Date) {
   return new Date(data).toLocaleDateString("pt-BR", {
     day: "2-digit",
