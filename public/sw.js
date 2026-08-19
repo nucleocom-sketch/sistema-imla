@@ -1,5 +1,5 @@
-const CACHE_NAME = "imla-cache-v1";
-const ARQUIVOS_ESSENCIAIS = ["/", "/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE_NAME = "imla-cache-v2";
+const ARQUIVOS_ESSENCIAIS = ["/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -19,28 +19,43 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Nunca cacheia rotas autenticadas/dinâmicas (/painel/*) nem chamadas de API —
-// dados de alunos e padrinhos precisam sempre vir direto do servidor.
+// Nunca cacheia rotas autenticadas/dinâmicas (/painel/*) nem o feed público —
+// dados de alunos, padrinhos e novidades precisam sempre vir direto do servidor.
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-  if (url.pathname.startsWith("/painel")) return;
+  if (url.pathname.startsWith("/painel") || url.pathname.startsWith("/rede-social")) return;
 
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      const fetchPromise = fetch(request)
+  // Páginas HTML (navegação): sempre busca a versão mais nova primeiro.
+  // Só usa o cache se o usuário estiver offline. Isso evita o app instalado
+  // ficar preso numa versão antiga depois de um novo deploy.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return networkResponse;
         })
-        .catch(() => cachedResponse);
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
 
-      return cachedResponse || fetchPromise;
+  // Demais arquivos estáticos (JS/CSS com hash, ícones): cache-first é seguro,
+  // porque o nome do arquivo muda a cada versão nova.
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
+      return fetch(request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return networkResponse;
+      });
     })
   );
 });
