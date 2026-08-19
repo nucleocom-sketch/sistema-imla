@@ -23,18 +23,26 @@ function lerPublico(formData: FormData) {
   return publica;
 }
 
+const urlImagemSchema = z
+  .string()
+  .refine((v) => v === "" || /^https:\/\//i.test(v) || /^http:\/\//i.test(v), {
+    message: "O link da imagem precisa começar com http:// ou https://",
+  });
+
 export async function criarPostagem(formData: FormData) {
   const nucleo = formData.get("nucleo") as Nucleo;
   const sessao = await exigirMembroDoNucleo(nucleo);
 
   const texto = z.string().min(1).parse(formData.get("texto"));
   const publica = lerPublico(formData);
+  const imagemUrl = urlImagemSchema.parse((formData.get("imagemUrl") as string) ?? "");
 
   await prisma.postagem.create({
-    data: { nucleo, texto, publica, autorId: sessao.userId },
+    data: { nucleo, texto, publica, imagemUrl: imagemUrl || null, autorId: sessao.userId },
   });
 
   revalidatePath("/painel/intranet");
+  revalidatePath("/rede-social");
 }
 
 export async function criarTarefa(formData: FormData) {

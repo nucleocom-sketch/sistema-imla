@@ -2,43 +2,52 @@
 
 import { useActionState, useState, type CSSProperties } from "react";
 import Image from "next/image";
-import {
-  entrar,
-  cadastrar,
-  cadastrarPadrinho,
-  entrarComoVisitante,
-  type FormState,
-} from "@/app/(auth)/actions";
+import Link from "next/link";
+import { entrar, cadastrarPadrinho, type FormState } from "@/app/(auth)/actions";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
-import { NUCLEOS } from "@/lib/config";
 import { Eye, EyeOff } from "lucide-react";
 
 type Aba = "login" | "cadastro";
-type Lado = "INTRANET" | "PEDAGOGICO";
+type Lado = "PADRINHO" | "PEDAGOGICO" | "PORTAL";
 
 const TEXTOS: Record<Lado, { titulo: string; sub: string; entrar: string }> = {
-  INTRANET: {
-    titulo: "O portal institucional do instituto.",
-    sub: "Novidades, tarefas, avisos e solicitações de cada núcleo do instituto, em um só lugar.",
-    entrar: "Entrar no Portal Institucional",
+  PADRINHO: {
+    titulo: "Acompanhe seu afilhado\nde perto.",
+    sub: "Veja a evolução, a Tábua da Maré e as novidades do seu afilhado ou afilhada.",
+    entrar: "Entrar como Padrinho/Madrinha",
   },
   PEDAGOGICO: {
     titulo: "Onde cada criança\nencontra um novo mundo.",
     sub: "Matrícula, apadrinhamento, Tábua da Maré e indicadores pedagógicos das crianças.",
     entrar: "Entrar no Pedagógico",
   },
+  PORTAL: {
+    titulo: "O portal institucional\ndo instituto.",
+    sub: "Área interna da gestão e dos núcleos — novidades, tarefas, avisos e solicitações.",
+    entrar: "Entrar no Portal Institucional",
+  },
+};
+
+const ACCENT_VAR: Record<Lado, string> = {
+  PADRINHO: "var(--imla-pink)",
+  PEDAGOGICO: "var(--imla-green)",
+  PORTAL: "var(--imla-teal)",
+};
+const ACCENT_DARK_VAR: Record<Lado, string> = {
+  PADRINHO: "#e0568f",
+  PEDAGOGICO: "var(--imla-green-dark)",
+  PORTAL: "var(--imla-teal-dark)",
 };
 
 export function AuthScreen() {
-  const [lado, setLado] = useState<Lado>("INTRANET");
+  const [lado, setLado] = useState<Lado>("PADRINHO");
   const [aba, setAba] = useState<Aba>("login");
 
-  const accentStyle = (
-    lado === "PEDAGOGICO"
-      ? { "--imla-accent": "var(--imla-green)", "--imla-accent-dark": "var(--imla-green-dark)" }
-      : { "--imla-accent": "var(--imla-teal)", "--imla-accent-dark": "var(--imla-teal-dark)" }
-  ) as CSSProperties;
+  const accentStyle = {
+    "--imla-accent": ACCENT_VAR[lado],
+    "--imla-accent-dark": ACCENT_DARK_VAR[lado],
+  } as CSSProperties;
 
   return (
     <main className="relative flex min-h-dvh w-full items-center justify-center overflow-hidden px-4 py-10">
@@ -55,6 +64,21 @@ export function AuthScreen() {
           <p className="mt-4 max-w-md text-base font-medium text-white/85 drop-shadow">
             {TEXTOS[lado].sub}
           </p>
+
+          <Link href="/rede-social" className="mt-8 w-fit">
+            <GlassCard
+              hover
+              className="flex items-center gap-3 px-6 py-4 text-white transition"
+            >
+              <span className="text-2xl">📰</span>
+              <span>
+                <span className="block text-sm font-black">Ver a Rede Social do instituto</span>
+                <span className="block text-xs font-medium text-white/70">
+                  Novidades de todos os núcleos, sem precisar de login
+                </span>
+              </span>
+            </GlassCard>
+          </Link>
         </div>
 
         <GlassCard strong className="w-full max-w-md p-8 sm:p-10" style={accentStyle}>
@@ -69,7 +93,13 @@ export function AuthScreen() {
             />
           </div>
 
-          <SeletorDeSistema lado={lado} onChange={setLado} />
+          <SeletorDeSistema
+            lado={lado}
+            onChange={(l) => {
+              setLado(l);
+              setAba("login");
+            }}
+          />
 
           <div className="mt-6 mb-6 flex rounded-full bg-black/5 p-1 dark:bg-white/5">
             <button
@@ -80,47 +110,38 @@ export function AuthScreen() {
             >
               Entrar
             </button>
-            <button
-              onClick={() => setAba("cadastro")}
-              className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
-                aba === "cadastro" ? "bg-imla-accent text-white shadow" : "text-foreground/60"
-              }`}
-            >
-              Criar conta
-            </button>
+            {lado === "PADRINHO" && (
+              <button
+                onClick={() => setAba("cadastro")}
+                className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
+                  aba === "cadastro" ? "bg-imla-accent text-white shadow" : "text-foreground/60"
+                }`}
+              >
+                Criar conta
+              </button>
+            )}
           </div>
 
-          {aba === "login" ? (
+          {aba === "login" || lado !== "PADRINHO" ? (
             <FormularioLogin lado={lado} />
-          ) : lado === "INTRANET" ? (
-            <FormularioCadastroNucleo />
           ) : (
             <FormularioCadastroPadrinho />
           )}
 
-          {lado === "INTRANET" && (
-            <>
-              <div className="mt-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-foreground/10" />
-                <span className="text-[11px] font-bold uppercase tracking-wide text-foreground/40">
-                  ou
-                </span>
-                <div className="h-px flex-1 bg-foreground/10" />
-              </div>
-
-              <form action={entrarComoVisitante} className="mt-4">
-                <Button type="submit" variant="secondary" fullWidth>
-                  👁️ Entrar como visitante
-                </Button>
-              </form>
-            </>
-          )}
-
-          {lado === "PEDAGOGICO" && aba === "login" && (
+          {lado !== "PADRINHO" && (
             <p className="mt-5 text-center text-xs font-semibold text-foreground/50">
-              Acesso da coordenação e dos padrinhos/madrinhas.
+              Acesso restrito à gestão e aos núcleos do instituto. Contas são criadas
+              pela coordenação.
             </p>
           )}
+
+          <div className="mt-6 lg:hidden">
+            <Link href="/rede-social">
+              <Button type="button" variant="secondary" fullWidth>
+                📰 Ver a Rede Social do instituto
+              </Button>
+            </Link>
+          </div>
         </GlassCard>
       </div>
     </main>
@@ -128,30 +149,31 @@ export function AuthScreen() {
 }
 
 function SeletorDeSistema({ lado, onChange }: { lado: Lado; onChange: (l: Lado) => void }) {
+  const opcoes: { key: Lado; label: string }[] = [
+    { key: "PADRINHO", label: "💌 Padrinho" },
+    { key: "PEDAGOGICO", label: "📚 Pedagógico" },
+    { key: "PORTAL", label: "📣 Portal" },
+  ];
+  const indice = opcoes.findIndex((o) => o.key === lado);
+
   return (
     <div className="relative flex rounded-full bg-black/5 p-1 dark:bg-white/10">
       <div
-        className="absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-imla-accent shadow transition-all duration-300 ease-out"
-        style={{ left: lado === "INTRANET" ? "4px" : "calc(50% + 0px)" }}
+        className="absolute inset-y-1 w-[calc(33.333%-4px)] rounded-full bg-imla-accent shadow transition-all duration-300 ease-out"
+        style={{ left: `calc(${indice} * 33.333% + 4px)` }}
       />
-      <button
-        type="button"
-        onClick={() => onChange("INTRANET")}
-        className={`relative z-10 flex-1 rounded-full py-2.5 text-xs font-extrabold uppercase tracking-wide transition-colors ${
-          lado === "INTRANET" ? "text-white" : "text-foreground/60"
-        }`}
-      >
-        📣 Portal
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("PEDAGOGICO")}
-        className={`relative z-10 flex-1 rounded-full py-2.5 text-xs font-extrabold uppercase tracking-wide transition-colors ${
-          lado === "PEDAGOGICO" ? "text-white" : "text-foreground/60"
-        }`}
-      >
-        📚 Pedagógico
-      </button>
+      {opcoes.map((o) => (
+        <button
+          key={o.key}
+          type="button"
+          onClick={() => onChange(o.key)}
+          className={`relative z-10 flex-1 rounded-full py-2.5 text-[11px] font-extrabold uppercase tracking-wide transition-colors sm:text-xs ${
+            lado === o.key ? "text-white" : "text-foreground/60"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -191,48 +213,6 @@ function FormularioLogin({ lado }: { lado: Lado }) {
 
       <Button type="submit" disabled={pending} fullWidth className="mt-1">
         {pending ? "Entrando..." : TEXTOS[lado].entrar}
-      </Button>
-    </form>
-  );
-}
-
-function FormularioCadastroNucleo() {
-  const [state, action, pending] = useActionState<FormState, FormData>(cadastrar, null);
-
-  return (
-    <form action={action} className="flex flex-col gap-4">
-      <Campo label="Nome completo" name="nome" type="text" placeholder="Seu nome" />
-      <Campo label="E-mail" name="email" type="email" placeholder="voce@email.com" />
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-bold text-foreground/70">Núcleo que pertence</label>
-        <select
-          name="nucleo"
-          required
-          className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
-        >
-          {Object.entries(NUCLEOS).map(([key, n]) => (
-            <option key={key} value={key}>
-              {n.icon} {n.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Campo label="Senha" name="senha" type="password" placeholder="••••••" />
-      <Campo
-        label="Confirmar senha"
-        name="confirmarSenha"
-        type="password"
-        placeholder="••••••"
-      />
-
-      {state?.erro && (
-        <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-500">
-          {state.erro}
-        </p>
-      )}
-
-      <Button type="submit" disabled={pending} fullWidth className="mt-1">
-        {pending ? "Criando conta..." : "Finalizar cadastro"}
       </Button>
     </form>
   );

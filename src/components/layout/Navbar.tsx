@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NUCLEOS, type NucleoKey } from "@/lib/config";
 import { sair } from "@/app/(auth)/actions";
+import type { Papel } from "@prisma/client";
 
 type NavbarProps = {
   nome: string;
-  papel: "ADMIN" | "NUCLEO" | "PADRINHO" | "VISITANTE";
+  papel: Papel;
   nucleo: NucleoKey | null;
 };
 
@@ -17,26 +18,18 @@ const LINKS_ADMIN = [
   { href: "/painel/intranet", label: "Portal Institucional" },
   { href: "/painel/pedagogico", label: "Pedagógico" },
   { href: "/painel/apadrinhamento", label: "Apadrinhamento" },
+  { href: "/painel/portal-direto", label: "📸 Rede Social" },
 ];
 
 const LINKS_NUCLEO = [{ href: "/painel/intranet", label: "Portal Institucional" }];
 
 const LINKS_PADRINHO = [{ href: "/painel/apadrinhamento", label: "Meu afilhado" }];
 
-const LINKS_VISITANTE = [{ href: "/painel/intranet", label: "Portal Institucional" }];
-
 export function Navbar({ nome, papel, nucleo }: NavbarProps) {
   const pathname = usePathname();
   const [aberto, setAberto] = useState(false);
 
-  const links =
-    papel === "ADMIN"
-      ? LINKS_ADMIN
-      : papel === "NUCLEO"
-      ? LINKS_NUCLEO
-      : papel === "PADRINHO"
-      ? LINKS_PADRINHO
-      : LINKS_VISITANTE;
+  const links = papel === "ADMIN" ? LINKS_ADMIN : papel === "NUCLEO" ? LINKS_NUCLEO : LINKS_PADRINHO;
 
   const iniciais = nome
     .split(" ")
@@ -75,7 +68,7 @@ export function Navbar({ nome, papel, nucleo }: NavbarProps) {
             onClick={() => setAberto((v) => !v)}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-imla-purple text-xs font-black text-white shadow"
           >
-            {papel === "VISITANTE" ? "👁️" : iniciais}
+            {iniciais}
           </button>
 
           {aberto && (
@@ -85,7 +78,6 @@ export function Navbar({ nome, papel, nucleo }: NavbarProps) {
                 {papel === "ADMIN" && "Coordenação"}
                 {papel === "NUCLEO" && nucleo && `${NUCLEOS[nucleo].icon} ${NUCLEOS[nucleo].label}`}
                 {papel === "PADRINHO" && "Padrinho/Madrinha"}
-                {papel === "VISITANTE" && "Modo visitante"}
               </p>
 
               <div className="mt-3 flex md:hidden flex-col gap-1 border-t border-foreground/10 pt-3">

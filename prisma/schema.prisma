@@ -136,8 +136,9 @@ model AvaliacaoMare {
 
 model Postagem {
   id        String   @id @default(cuid())
-  nucleo    Nucleo
+  nucleo    Nucleo?
   texto     String
+  imagemUrl String?
   publica   Boolean  @default(false)
   autor     Usuario  @relation(fields: [autorId], references: [id])
   autorId   String

@@ -3,10 +3,11 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import type { NucleoKey } from "@/lib/config";
+import type { Papel } from "@prisma/client";
 
 type Props = {
   nome: string;
-  papel: "ADMIN" | "NUCLEO" | "PADRINHO" | "VISITANTE";
+  papel: Papel;
   nucleo: NucleoKey | null;
   children: React.ReactNode;
 };
