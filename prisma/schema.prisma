@@ -138,6 +138,7 @@ model Postagem {
   id        String   @id @default(cuid())
   nucleo    Nucleo
   texto     String
+  publica   Boolean  @default(false)
   autor     Usuario  @relation(fields: [autorId], references: [id])
   autorId   String
   criadoEm  DateTime @default(now())
@@ -161,6 +162,7 @@ model Lembrete {
   titulo       String
   descricao    String?
   proximaData  DateTime
+  publica      Boolean  @default(false)
   autor        Usuario  @relation(fields: [autorId], references: [id])
   autorId      String
   criadoEm     DateTime @default(now())

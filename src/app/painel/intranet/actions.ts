@@ -14,14 +14,24 @@ async function exigirMembroDoNucleo(nucleo: Nucleo) {
   return sessao;
 }
 
+function lerPublico(formData: FormData) {
+  const publica = formData.get("publica") === "true";
+  const confirmou = formData.get("confirmouPublico") === "true";
+  if (publica && !confirmou) {
+    throw new Error("Confirme que deseja tornar isso público antes de salvar.");
+  }
+  return publica;
+}
+
 export async function criarPostagem(formData: FormData) {
   const nucleo = formData.get("nucleo") as Nucleo;
   const sessao = await exigirMembroDoNucleo(nucleo);
 
   const texto = z.string().min(1).parse(formData.get("texto"));
+  const publica = lerPublico(formData);
 
   await prisma.postagem.create({
-    data: { nucleo, texto, autorId: sessao.userId },
+    data: { nucleo, texto, publica, autorId: sessao.userId },
   });
 
   revalidatePath("/painel/intranet");
@@ -76,6 +86,7 @@ export async function criarLembrete(formData: FormData) {
   const titulo = z.string().min(1).parse(formData.get("titulo"));
   const descricao = (formData.get("descricao") as string) ?? "";
   const proximaData = z.string().min(1).parse(formData.get("proximaData"));
+  const publica = lerPublico(formData);
 
   await prisma.lembrete.create({
     data: {
@@ -83,6 +94,7 @@ export async function criarLembrete(formData: FormData) {
       titulo,
       descricao,
       proximaData: new Date(proximaData),
+      publica,
       autorId: sessao.userId,
     },
   });

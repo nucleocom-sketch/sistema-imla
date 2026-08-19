@@ -14,16 +14,16 @@ type NavbarProps = {
 };
 
 const LINKS_ADMIN = [
-  { href: "/painel/intranet", label: "Intranet" },
+  { href: "/painel/intranet", label: "Portal Institucional" },
   { href: "/painel/pedagogico", label: "Pedagógico" },
   { href: "/painel/apadrinhamento", label: "Apadrinhamento" },
 ];
 
-const LINKS_NUCLEO = [{ href: "/painel/intranet", label: "Intranet" }];
+const LINKS_NUCLEO = [{ href: "/painel/intranet", label: "Portal Institucional" }];
 
 const LINKS_PADRINHO = [{ href: "/painel/apadrinhamento", label: "Meu afilhado" }];
 
-const LINKS_VISITANTE = [{ href: "/painel/intranet", label: "Intranet" }];
+const LINKS_VISITANTE = [{ href: "/painel/intranet", label: "Portal Institucional" }];
 
 export function Navbar({ nome, papel, nucleo }: NavbarProps) {
   const pathname = usePathname();

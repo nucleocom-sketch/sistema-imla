@@ -24,7 +24,7 @@ export default async function IntranetPage({
   try {
     const [postagens, tarefas, lembretes, caixaEntrada, links] = await Promise.all([
       prisma.postagem.findMany({
-        where: { nucleo: nucleoAtual },
+        where: podeEditar ? { nucleo: nucleoAtual } : { nucleo: nucleoAtual, publica: true },
         include: { autor: { select: { nome: true } } },
         orderBy: { criadoEm: "desc" },
         take: 30,
@@ -35,7 +35,7 @@ export default async function IntranetPage({
         orderBy: { criadoEm: "desc" },
       }),
       prisma.lembrete.findMany({
-        where: { nucleo: nucleoAtual },
+        where: podeEditar ? { nucleo: nucleoAtual } : { nucleo: nucleoAtual, publica: true },
         include: { autor: { select: { nome: true } } },
         orderBy: { proximaData: "asc" },
       }),

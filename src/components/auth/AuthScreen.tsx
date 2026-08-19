@@ -19,9 +19,9 @@ type Lado = "INTRANET" | "PEDAGOGICO";
 
 const TEXTOS: Record<Lado, { titulo: string; sub: string; entrar: string }> = {
   INTRANET: {
-    titulo: "A intranet dos núcleos.",
+    titulo: "O portal institucional do instituto.",
     sub: "Novidades, tarefas, avisos e solicitações de cada núcleo do instituto, em um só lugar.",
-    entrar: "Entrar na Intranet",
+    entrar: "Entrar no Portal Institucional",
   },
   PEDAGOGICO: {
     titulo: "Onde cada criança\nencontra um novo mundo.",
@@ -141,7 +141,7 @@ function SeletorDeSistema({ lado, onChange }: { lado: Lado; onChange: (l: Lado) 
           lado === "INTRANET" ? "text-white" : "text-foreground/60"
         }`}
       >
-        📣 Intranet
+        📣 Portal
       </button>
       <button
         type="button"

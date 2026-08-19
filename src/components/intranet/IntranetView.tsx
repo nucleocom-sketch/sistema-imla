@@ -22,10 +22,12 @@ import {
   excluirLink,
   enviarSolicitacao,
 } from "@/app/painel/intranet/actions";
+import { PublicoToggle } from "@/components/intranet/PublicoToggle";
+import { InstitucionalHero } from "@/components/intranet/InstitucionalHero";
 
 type Autor = { nome: string };
 
-type Postagem = { id: string; texto: string; criadoEm: Date; autor: Autor };
+type Postagem = { id: string; texto: string; publica: boolean; criadoEm: Date; autor: Autor };
 type Tarefa = {
   id: string;
   titulo: string;
@@ -40,6 +42,7 @@ type Lembrete = {
   titulo: string;
   descricao: string | null;
   proximaData: Date;
+  publica: boolean;
   autor: Autor;
 };
 type Solicitacao = {
@@ -102,6 +105,8 @@ export function IntranetView({
 
   return (
     <div className="flex flex-col gap-6">
+      <InstitucionalHero />
+
       <div className="flex flex-wrap gap-2">
         {Object.entries(NUCLEOS).map(([key, n]) => (
           <Link key={key} href={`/painel/intranet?nucleo=${key}`}>
@@ -175,6 +180,8 @@ function AbaNovidades({
   podeEditar: boolean;
   postagens: Postagem[];
 }) {
+  const [desabilitado, setDesabilitado] = useState(false);
+
   return (
     <div className="flex flex-col gap-4">
       {podeEditar && (
@@ -188,7 +195,11 @@ function AbaNovidades({
               placeholder="Compartilhar algo novo com o núcleo..."
               className="w-full rounded-xl border border-foreground/10 bg-white/70 p-3 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
             />
-            <Button type="submit" className="self-end">
+            <PublicoToggle
+              aviso="Novidades públicas ficam visíveis para qualquer pessoa no Portal Institucional, incluindo visitantes."
+              onDisabledChange={setDesabilitado}
+            />
+            <Button type="submit" className="self-end" disabled={desabilitado}>
               Publicar
             </Button>
           </form>
@@ -203,7 +214,7 @@ function AbaNovidades({
         {postagens.map((p) => (
           <GlassCard key={p.id} className="p-5">
             <p className="text-[11px] font-extrabold uppercase tracking-wide text-imla-accent-dark">
-              Novo
+              {p.publica ? "🌐 Público" : "🔒 Privado"}
             </p>
             <p className="mt-1 text-sm font-extrabold">{p.autor.nome}</p>
             <p className="mt-2 text-sm text-foreground/70">{p.texto}</p>
@@ -394,6 +405,7 @@ function AbaLembretes({
   lembretes: Lembrete[];
 }) {
   const [aberto, setAberto] = useState(false);
+  const [desabilitado, setDesabilitado] = useState(false);
   const hoje = new Date();
 
   return (
@@ -425,7 +437,11 @@ function AbaLembretes({
                   required
                   className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
                 />
-                <Button type="submit" className="self-end">
+                <PublicoToggle
+                  aviso="Avisos públicos ficam visíveis para qualquer pessoa no Portal Institucional, incluindo visitantes."
+                  onDisabledChange={setDesabilitado}
+                />
+                <Button type="submit" className="self-end" disabled={desabilitado}>
                   💾 Salvar
                 </Button>
               </form>
@@ -443,6 +459,9 @@ function AbaLembretes({
             <GlassCard key={l.id} className="border-l-4 border-imla-accent p-4">
               <p className="text-sm font-extrabold">{l.titulo}</p>
               {l.descricao && <p className="mt-1 text-xs text-foreground/60">{l.descricao}</p>}
+              <span className="mt-1 mr-1 inline-block rounded-full bg-black/5 px-3 py-1 text-[10px] font-extrabold uppercase text-foreground/60">
+                {l.publica ? "🌐 Público" : "🔒 Privado"}
+              </span>
               <span
                 className={`mt-2 inline-block rounded-full px-3 py-1 text-[11px] font-bold ${
                   atrasado ? "bg-red-500/10 text-red-500" : "bg-imla-accent/10 text-imla-accent-dark"
@@ -570,8 +589,8 @@ function AbaLinks({
                 {ehPublico && (
                   <div className="rounded-xl border border-imla-yellow/50 bg-imla-yellow/10 p-3">
                     <p className="text-xs font-bold text-foreground/80">
-                      ⚠️ Links públicos ficam visíveis para qualquer pessoa que acessar a
-                      Intranet, incluindo visitantes. Tenha certeza de que este link pode
+                      ⚠️ Links públicos ficam visíveis para qualquer pessoa que acessar o
+                      Portal Institucional, incluindo visitantes. Tenha certeza de que este link pode
                       ser visto por todos antes de confirmar.
                     </p>
                     <label className="mt-2 flex items-center gap-2 text-xs font-bold">
