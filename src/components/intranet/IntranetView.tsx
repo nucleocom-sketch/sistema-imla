@@ -145,7 +145,7 @@ export function IntranetView({
         )}
       </div>
 
-      <div className="flex gap-1 overflow-x-auto rounded-full bg-black/5 p-1 dark:bg-white/5">
+      <div className="flex gap-1 overflow-x-auto rounded-full bg-black/5 p-1 dark:bg-white/5 [mask-image:linear-gradient(to_right,black_88%,transparent_100%)]">
         {ABAS.map((a) => (
           <button
             key={a.key}

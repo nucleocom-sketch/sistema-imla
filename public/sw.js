@@ -1,5 +1,5 @@
-const CACHE_NAME = "imla-cache-v2";
-const ARQUIVOS_ESSENCIAIS = ["/icons/icon-192.png", "/icons/icon-512.png"];
+const CACHE_NAME = "imla-cache-v3";
+const ARQUIVOS_ESSENCIAIS = ["/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

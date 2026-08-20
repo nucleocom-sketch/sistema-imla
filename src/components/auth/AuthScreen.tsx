@@ -15,7 +15,7 @@ const TEXTOS: Record<Lado, { titulo: string; sub: string; entrar: string }> = {
   PADRINHO: {
     titulo: "Acompanhe seu afilhado\nde perto.",
     sub: "Veja a evolução, a Tábua da Maré e as novidades do seu afilhado ou afilhada.",
-    entrar: "Entrar como Padrinho/Madrinha",
+    entrar: "Entrar como padrinho(a)",
   },
   PEDAGOGICO: {
     titulo: "Onde cada criança\nencontra um novo mundo.",
@@ -25,7 +25,7 @@ const TEXTOS: Record<Lado, { titulo: string; sub: string; entrar: string }> = {
   PORTAL: {
     titulo: "O portal institucional\ndo instituto.",
     sub: "Área interna da gestão e dos núcleos — novidades, tarefas, avisos e solicitações.",
-    entrar: "Entrar no Portal Institucional",
+    entrar: "Entrar no Portal",
   },
 };
 
@@ -138,7 +138,7 @@ export function AuthScreen() {
           <div className="mt-6 lg:hidden">
             <Link href="/rede-social">
               <Button type="button" variant="secondary" fullWidth>
-                📰 Ver a Rede Social do instituto
+                📰 Ver a Rede Social
               </Button>
             </Link>
           </div>
@@ -167,7 +167,7 @@ function SeletorDeSistema({ lado, onChange }: { lado: Lado; onChange: (l: Lado) 
           key={o.key}
           type="button"
           onClick={() => onChange(o.key)}
-          className={`relative z-10 flex-1 rounded-full py-2.5 text-[11px] font-extrabold uppercase tracking-wide transition-colors sm:text-xs ${
+          className={`relative z-10 flex-1 whitespace-nowrap rounded-full py-2.5 text-[10px] font-extrabold uppercase tracking-normal transition-colors sm:text-xs sm:tracking-wide ${
             lado === o.key ? "text-white" : "text-foreground/60"
           }`}
         >
