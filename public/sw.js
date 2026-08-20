@@ -1,4 +1,4 @@
-const CACHE_NAME = "imla-cache-v4";
+const CACHE_NAME = "imla-cache-v5";
 const ARQUIVOS_ESSENCIAIS = ["/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -17,6 +17,39 @@ self.addEventListener("activate", (event) => {
       )
   );
   self.clients.claim();
+});
+
+// Notificação de novidades da Rede Social.
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let dados;
+  try {
+    dados = event.data.json();
+  } catch {
+    dados = { title: "Instituto Mãe Lalu", body: event.data.text() };
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(dados.title || "Instituto Mãe Lalu", {
+      body: dados.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: dados.url || "/rede-social" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/rede-social";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(url) && "focus" in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })
+  );
 });
 
 // Nunca cacheia rotas autenticadas/dinâmicas (/painel/*) nem o feed público —

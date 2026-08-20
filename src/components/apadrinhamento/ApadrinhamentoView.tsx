@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { WaveIndicator } from "@/components/ui/WaveIndicator";
+import { Select } from "@/components/ui/Select";
 import {
   SALAS,
   CATEGORIAS_MARE,
@@ -63,6 +64,19 @@ export function ApadrinhamentoView({
   const [afilhadoId, setAfilhadoId] = useState(alunos[0]?.id ?? "");
   const afilhado = alunos.find((a) => a.id === afilhadoId) ?? alunos[0];
 
+  // Lembra o último padrinho visualizado pela coordenação, para não precisar
+  // reabrir o dropdown e procurar o nome de novo ao voltar para esta página.
+  useEffect(() => {
+    if (!ehAdmin) return;
+    if (nomePadrinho) {
+      sessionStorage.setItem("imla:ultimoPadrinho", nomePadrinho);
+    } else {
+      const ultimo = sessionStorage.getItem("imla:ultimoPadrinho");
+      if (ultimo) router.replace(`/painel/apadrinhamento?padrinho=${encodeURIComponent(ultimo)}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ehAdmin, nomePadrinho]);
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-black">💌 Canal do Apadrinhamento</h1>
@@ -72,18 +86,14 @@ export function ApadrinhamentoView({
           <label className="mb-2 block text-xs font-bold text-foreground/60">
             👤 Selecionar Padrinho/Madrinha (visualização da coordenação)
           </label>
-          <select
-            defaultValue={nomePadrinho}
-            onChange={(e) => router.push(`/painel/apadrinhamento?padrinho=${encodeURIComponent(e.target.value)}`)}
-            className="w-full max-w-md rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-          >
-            <option value="">Selecione...</option>
-            {listaPadrinhos.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+          <Select
+            searchable
+            className="max-w-md"
+            value={nomePadrinho}
+            placeholder="Selecione..."
+            options={listaPadrinhos.map((p) => ({ value: p, label: p }))}
+            onChange={(v) => router.push(`/painel/apadrinhamento?padrinho=${encodeURIComponent(v)}`)}
+          />
         </GlassCard>
       )}
 

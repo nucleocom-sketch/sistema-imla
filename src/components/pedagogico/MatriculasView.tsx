@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Select } from "@/components/ui/Select";
 import { SALAS, type SalaKey } from "@/lib/config";
 import {
   matricularAluno,
@@ -62,17 +63,11 @@ export function MatriculasView({ alunos }: { alunos: Aluno[] }) {
               placeholder="Nome do aluno"
               className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
             />
-            <select
+            <Select
               name="sala"
               defaultValue={salaAtual}
-              className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-            >
-              {Object.entries(SALAS).map(([key, s]) => (
-                <option key={key} value={key}>
-                  {s.icon} {s.label}
-                </option>
-              ))}
-            </select>
+              options={Object.entries(SALAS).map(([key, s]) => ({ value: key, label: `${s.icon} ${s.label}` }))}
+            />
             <input
               name="idade"
               type="number"
@@ -105,17 +100,12 @@ export function MatriculasView({ alunos }: { alunos: Aluno[] }) {
             </p>
           ) : (
             <form action={definirPadrinho} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <select
+              <Select
                 name="alunoId"
-                required
-                className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-              >
-                {semPadrinho.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nome}
-                  </option>
-                ))}
-              </select>
+                searchable
+                defaultValue={semPadrinho[0]?.id}
+                options={semPadrinho.map((a) => ({ value: a.id, label: a.nome }))}
+              />
               <input
                 name="padrinho"
                 required
@@ -158,17 +148,12 @@ export function MatriculasView({ alunos }: { alunos: Aluno[] }) {
             </p>
           ) : (
             <form action={matricularTurnoEstendido} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <select
+              <Select
                 name="alunoId"
-                required
-                className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-              >
-                {semTurnoEstendido.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nome} · {SALAS[a.sala].label}
-                  </option>
-                ))}
-              </select>
+                searchable
+                defaultValue={semTurnoEstendido[0]?.id}
+                options={semTurnoEstendido.map((a) => ({ value: a.id, label: `${a.nome} · ${SALAS[a.sala].label}` }))}
+              />
               <Button type="submit">✅ Confirmar matrícula</Button>
             </form>
           )}

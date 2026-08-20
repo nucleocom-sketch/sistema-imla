@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { obterSessao } from "@/lib/auth";
+import { notificarNovaPostagemPublica } from "@/lib/push";
 import type { Nucleo, StatusTarefa, Prioridade } from "@prisma/client";
 
 async function exigirMembroDoNucleo(nucleo: Nucleo) {
@@ -43,6 +44,7 @@ export async function criarPostagem(formData: FormData) {
 
   revalidatePath("/painel/intranet");
   revalidatePath("/rede-social");
+  if (publica) await notificarNovaPostagemPublica(texto);
 }
 
 export async function criarTarefa(formData: FormData) {
@@ -52,9 +54,10 @@ export async function criarTarefa(formData: FormData) {
   const titulo = z.string().min(1).parse(formData.get("titulo"));
   const descricao = (formData.get("descricao") as string) ?? "";
   const prioridade = (formData.get("prioridade") as Prioridade) ?? "MEDIA";
+  const publica = lerPublico(formData);
 
   await prisma.tarefa.create({
-    data: { nucleo, titulo, descricao, prioridade, autorId: sessao.userId },
+    data: { nucleo, titulo, descricao, prioridade, publica, autorId: sessao.userId },
   });
 
   revalidatePath("/painel/intranet");

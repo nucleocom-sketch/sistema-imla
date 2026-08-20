@@ -20,10 +20,8 @@ export function InstitucionalHero() {
           <h1 className="text-2xl font-black text-white drop-shadow sm:text-3xl">
             Instituto Mãe Lalu
           </h1>
-          <p className="mt-1 max-w-lg text-sm font-medium text-white/90 drop-shadow">
-            Um lugar para todos. Aqui você acompanha tudo que acontece em cada núcleo
-            do instituto — fique por dentro das novidades, avisos e projetos que
-            transformam a vida das nossas crianças e famílias.
+          <p className="mt-1 text-sm font-medium text-white/90 drop-shadow">
+            Um lugar para todos.
           </p>
         </div>
         <button

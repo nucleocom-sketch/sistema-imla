@@ -152,6 +152,7 @@ model Tarefa {
   descricao   String?
   status      StatusTarefa @default(CRIADA)
   prioridade  Prioridade   @default(MEDIA)
+  publica     Boolean      @default(false)
   autor       Usuario      @relation(fields: [autorId], references: [id])
   autorId     String
   criadoEm    DateTime     @default(now())
@@ -191,3 +192,10 @@ model Solicitacao {
   criadoEm     DateTime @default(now())
 }
 
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  criadoEm  DateTime @default(now())
+}

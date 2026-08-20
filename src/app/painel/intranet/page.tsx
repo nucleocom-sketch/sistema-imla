@@ -30,7 +30,7 @@ export default async function IntranetPage({
         take: 30,
       }),
       prisma.tarefa.findMany({
-        where: { nucleo: nucleoAtual },
+        where: podeEditar ? { nucleo: nucleoAtual } : { nucleo: nucleoAtual, publica: true },
         include: { autor: { select: { nome: true } } },
         orderBy: { criadoEm: "desc" },
       }),

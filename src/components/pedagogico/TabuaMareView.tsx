@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { WaveIndicator } from "@/components/ui/WaveIndicator";
+import { Select } from "@/components/ui/Select";
 import { SALAS, CATEGORIAS_MARE, NIVEIS_MARE, type SalaKey } from "@/lib/config";
 import { salvarAvaliacaoMare } from "@/app/painel/pedagogico/actions";
 
@@ -116,30 +117,25 @@ function FormularioAvaliacao({ alunoId }: { alunoId: string }) {
     <form action={salvarAvaliacaoMare} className="flex flex-col gap-3 border-t border-foreground/10 pt-4">
       <input type="hidden" name="alunoId" value={alunoId} />
       <p className="text-sm font-extrabold">⭐ Nova avaliação</p>
-      <select
+      <Select
         name="semestre"
-        required
-        className="w-full max-w-xs rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-      >
-        <option value="1º Semestre">1º Semestre</option>
-        <option value="2º Semestre">2º Semestre</option>
-      </select>
+        defaultValue="1º Semestre"
+        className="max-w-xs"
+        options={[
+          { value: "1º Semestre", label: "1º Semestre" },
+          { value: "2º Semestre", label: "2º Semestre" },
+        ]}
+      />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {CATEGORIAS_MARE.map((cat, i) => (
           <div key={cat} className="flex flex-col gap-1">
             <label className="text-xs font-bold text-foreground/70">{cat}</label>
-            <select
+            <Select
               name={`nota_${i}`}
               defaultValue="ENCHENTE"
-              className="w-full rounded-xl border border-foreground/10 bg-white/70 px-3 py-2 text-sm outline-none dark:bg-white/5"
-            >
-              {NIVEIS_MARE.map((n) => (
-                <option key={n.key} value={n.key}>
-                  {n.label}
-                </option>
-              ))}
-            </select>
+              options={NIVEIS_MARE.map((n) => ({ value: n.key, label: n.label }))}
+            />
           </div>
         ))}
       </div>

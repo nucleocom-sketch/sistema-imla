@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { WaveIndicator } from "@/components/ui/WaveIndicator";
+import { Select } from "@/components/ui/Select";
 import {
   NIVEIS_ALFABETIZACAO,
   EVIDENCIAS_POR_NIVEL,
@@ -165,23 +166,23 @@ function NovaAvaliacaoForm({ alunoId }: { alunoId: string }) {
         <input type="hidden" name="alunoId" value={alunoId} />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <select
+          <Select
             name="ano"
-            defaultValue={2026}
-            className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-          >
-            <option value={2026}>2026</option>
-            <option value={2025}>2025</option>
-          </select>
-          <select
+            defaultValue="2026"
+            options={[
+              { value: "2026", label: "2026" },
+              { value: "2025", label: "2025" },
+            ]}
+          />
+          <Select
             name="etapa"
             defaultValue="PRIMEIRA"
-            className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-          >
-            <option value="PRIMEIRA">1ª Avaliação</option>
-            <option value="SEGUNDA">2ª Avaliação</option>
-            <option value="FINAL">Avaliação Final</option>
-          </select>
+            options={[
+              { value: "PRIMEIRA", label: "1ª Avaliação" },
+              { value: "SEGUNDA", label: "2ª Avaliação" },
+              { value: "FINAL", label: "Avaliação Final" },
+            ]}
+          />
         </div>
 
         <div>

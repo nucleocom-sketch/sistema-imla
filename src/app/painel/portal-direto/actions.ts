@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { obterSessao } from "@/lib/auth";
+import { notificarNovaPostagemPublica } from "@/lib/push";
 
 async function exigirAdmin() {
   const sessao = await obterSessao();
@@ -37,6 +38,7 @@ export async function criarPostagemDireta(formData: FormData) {
 
   revalidatePath("/painel/portal-direto");
   revalidatePath("/rede-social");
+  await notificarNovaPostagemPublica(texto);
 }
 
 export async function excluirPostagemDireta(formData: FormData) {

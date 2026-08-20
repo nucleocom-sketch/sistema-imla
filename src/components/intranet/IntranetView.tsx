@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +23,7 @@ import {
   enviarSolicitacao,
 } from "@/app/painel/intranet/actions";
 import { PublicoToggle } from "@/components/intranet/PublicoToggle";
+import { Select } from "@/components/ui/Select";
 import { InstitucionalHero } from "@/components/intranet/InstitucionalHero";
 
 type Autor = { nome: string };
@@ -34,6 +35,7 @@ type Tarefa = {
   descricao: string | null;
   status: keyof typeof STATUS_TAREFA;
   prioridade: keyof typeof PRIORIDADES;
+  publica: boolean;
   criadoEm: Date;
   autor: Autor;
 };
@@ -111,8 +113,22 @@ export function IntranetView({
   caixaEntrada,
   links,
 }: Props) {
-  const [aba, setAba] = useState<AbaKey>("novidades");
+  const [aba, setAbaState] = useState<AbaKey>("novidades");
   const cfg = NUCLEOS[nucleoAtual];
+  const abaStorageKey = `imla:aba:${nucleoAtual}`;
+
+  // Lembra em qual aba (Novidades/Demandas/Avisos/...) a pessoa estava neste
+  // núcleo, para não perder o lugar ao sair para outra página e voltar.
+  useEffect(() => {
+    const salva = sessionStorage.getItem(abaStorageKey) as AbaKey | null;
+    if (salva && ABAS.some((a) => a.key === salva)) setAbaState(salva);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nucleoAtual]);
+
+  function setAba(a: AbaKey) {
+    setAbaState(a);
+    sessionStorage.setItem(abaStorageKey, a);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -251,6 +267,7 @@ function AbaTarefas({
   tarefas: Tarefa[];
 }) {
   const [aberto, setAberto] = useState(false);
+  const [desabilitado, setDesabilitado] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
@@ -275,18 +292,16 @@ function AbaTarefas({
                   placeholder="Descrição (o que precisa ser feito)"
                   className="w-full rounded-xl border border-foreground/10 bg-white/70 p-3 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
                 />
-                <select
+                <Select
                   name="prioridade"
                   defaultValue="MEDIA"
-                  className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
-                >
-                  {Object.entries(PRIORIDADES).map(([key, p]) => (
-                    <option key={key} value={key}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-                <Button type="submit" className="self-end">
+                  options={Object.entries(PRIORIDADES).map(([key, p]) => ({ value: key, label: p.label }))}
+                />
+                <PublicoToggle
+                  aviso="Demandas públicas ficam visíveis para qualquer pessoa no Portal Institucional, incluindo visitantes."
+                  onDisabledChange={setDesabilitado}
+                />
+                <Button type="submit" className="self-end" disabled={desabilitado}>
                   Adicionar demanda
                 </Button>
               </form>
@@ -336,7 +351,12 @@ function CartaoTarefa({
       {tarefa.descricao && (
         <p className="mt-1 text-xs text-foreground/60">{tarefa.descricao}</p>
       )}
-      <Badge label={PRIORIDADES[tarefa.prioridade].label} color={cor} className="mt-2" />
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Badge label={PRIORIDADES[tarefa.prioridade].label} color={cor} />
+        <span className="rounded-full bg-black/5 px-3 py-1 text-[10px] font-extrabold uppercase text-foreground/60 dark:bg-white/10">
+          {tarefa.publica ? "🌐 Público" : "🔒 Privado"}
+        </span>
+      </div>
       <p className="mt-2 text-[10px] font-semibold text-foreground/40">
         Criado por {tarefa.autor.nome}
       </p>
@@ -364,28 +384,16 @@ function CartaoTarefa({
                 rows={2}
                 className="w-full rounded-lg border border-foreground/10 bg-white/70 p-2 text-xs outline-none dark:bg-white/5"
               />
-              <select
+              <Select
                 name="status"
                 defaultValue={tarefa.status}
-                className="w-full rounded-lg border border-foreground/10 bg-white/70 px-3 py-1.5 text-xs outline-none dark:bg-white/5"
-              >
-                {STATUS_KEYS.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_TAREFA[s].label}
-                  </option>
-                ))}
-              </select>
-              <select
+                options={STATUS_KEYS.map((s) => ({ value: s, label: STATUS_TAREFA[s].label }))}
+              />
+              <Select
                 name="prioridade"
                 defaultValue={tarefa.prioridade}
-                className="w-full rounded-lg border border-foreground/10 bg-white/70 px-3 py-1.5 text-xs outline-none dark:bg-white/5"
-              >
-                {Object.entries(PRIORIDADES).map(([key, p]) => (
-                  <option key={key} value={key}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+                options={Object.entries(PRIORIDADES).map(([key, p]) => ({ value: key, label: p.label }))}
+              />
               <div className="flex gap-2">
                 <Button type="submit" className="flex-1 !py-1.5 !text-xs">
                   Salvar
@@ -690,17 +698,11 @@ function AbaSolicitacoes({
           <p className="mb-3 font-extrabold">Enviar solicitação</p>
           <form action={enviarSolicitacao} className="flex flex-col gap-3">
             <input type="hidden" name="nucleoOrigem" value={nucleoAtual} />
-            <select
+            <Select
               name="nucleoDestino"
-              required
-              className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none dark:bg-white/5"
-            >
-              {Object.entries(NUCLEOS).map(([key, n]) => (
-                <option key={key} value={key}>
-                  {n.icon} {n.label}
-                </option>
-              ))}
-            </select>
+              defaultValue={Object.keys(NUCLEOS)[0]}
+              options={Object.entries(NUCLEOS).map(([key, n]) => ({ value: key, label: `${n.icon} ${n.label}` }))}
+            />
             <input
               name="assunto"
               required

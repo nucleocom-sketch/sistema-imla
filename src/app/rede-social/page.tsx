@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NUCLEOS } from "@/lib/config";
+import { NotificacoesRedeSocial } from "@/components/NotificacoesRedeSocial";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,8 @@ export default async function RedeSocialPage() {
           Novidades de todos os núcleos do Instituto Mãe Lalu, em um só lugar.
         </p>
       </div>
+
+      <NotificacoesRedeSocial />
 
       {erro && (
         <GlassCard className="p-8 text-center">
