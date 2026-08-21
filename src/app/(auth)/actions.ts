@@ -63,10 +63,10 @@ export async function entrar(_prev: FormState, formData: FormData): Promise<Form
   // um login de núcleo/coordenação não pode entrar pela aba de Padrinho, e
   // vice-versa — mesmo que a senha esteja certa.
   if (destino === "PADRINHO" && usuario.papel !== "PADRINHO") {
-    return erroGenerico;
+    return { erro: "Essa conta é da gestão ou de um núcleo — entre pela aba Portal." };
   }
   if (destino === "PORTAL" && usuario.papel === "PADRINHO") {
-    return erroGenerico;
+    return { erro: "Essa conta é de padrinho/madrinha — entre pela aba Padrinho." };
   }
 
   if (usuario.tentativasFalhas > 0 || usuario.bloqueadoAte) {

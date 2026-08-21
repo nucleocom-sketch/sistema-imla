@@ -94,16 +94,16 @@ export function AuthScreen() {
             }}
           />
 
-          <div className="mt-6 mb-6 flex rounded-full bg-black/5 p-1 dark:bg-white/5">
-            <button
-              onClick={() => setAba("login")}
-              className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
-                aba === "login" ? "bg-imla-accent text-white shadow" : "text-foreground/60"
-              }`}
-            >
-              Entrar
-            </button>
-            {lado === "PADRINHO" && (
+          {lado === "PADRINHO" && (
+            <div className="mt-6 mb-6 flex rounded-full bg-black/5 p-1 dark:bg-white/5">
+              <button
+                onClick={() => setAba("login")}
+                className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
+                  aba === "login" ? "bg-imla-accent text-white shadow" : "text-foreground/60"
+                }`}
+              >
+                Entrar
+              </button>
               <button
                 onClick={() => setAba("cadastro")}
                 className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
@@ -112,14 +112,16 @@ export function AuthScreen() {
               >
                 Criar conta
               </button>
+            </div>
+          )}
+
+          <div className={lado === "PADRINHO" ? "" : "mt-6"}>
+            {aba === "login" || lado !== "PADRINHO" ? (
+              <FormularioLogin lado={lado} />
+            ) : (
+              <FormularioCadastroPadrinho />
             )}
           </div>
-
-          {aba === "login" || lado !== "PADRINHO" ? (
-            <FormularioLogin lado={lado} />
-          ) : (
-            <FormularioCadastroPadrinho />
-          )}
 
           {lado !== "PADRINHO" && (
             <p className="mt-5 text-center text-xs font-semibold text-foreground/50">
