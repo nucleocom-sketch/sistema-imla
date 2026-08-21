@@ -7,11 +7,11 @@ import { PortalDiretoView } from "@/components/portal-direto/PortalDiretoView";
 export default async function PortalDiretoPage() {
   const sessao = await obterSessao();
   if (!sessao) redirect("/");
-  if (sessao.papel !== "ADMIN") redirect("/painel");
+  if (sessao.papel !== "ADMIN" && sessao.papel !== "NUCLEO") redirect("/painel");
 
   try {
     const postagens = await prisma.postagem.findMany({
-      where: { nucleo: null },
+      where: sessao.papel === "ADMIN" ? { publica: true } : { nucleo: sessao.nucleo, publica: true },
       include: { autor: { select: { nome: true } } },
       orderBy: { criadoEm: "desc" },
       take: 30,

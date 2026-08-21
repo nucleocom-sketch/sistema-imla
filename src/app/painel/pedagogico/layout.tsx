@@ -12,7 +12,8 @@ const ABAS = [
 export default async function PedagogicoLayout({ children }: LayoutProps<"/painel/pedagogico">) {
   const sessao = await obterSessao();
   if (!sessao) redirect("/");
-  if (sessao.papel !== "ADMIN") redirect("/painel");
+  const temAcesso = sessao.papel === "ADMIN" || (sessao.papel === "NUCLEO" && sessao.nucleo === "PEDAGOGICO");
+  if (!temAcesso) redirect("/painel");
 
   return (
     <div className="flex flex-col gap-6">

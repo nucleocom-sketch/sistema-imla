@@ -9,18 +9,13 @@ import { Button } from "@/components/ui/Button";
 import { Eye, EyeOff } from "lucide-react";
 
 type Aba = "login" | "cadastro";
-type Lado = "PADRINHO" | "PEDAGOGICO" | "PORTAL";
+type Lado = "PADRINHO" | "PORTAL";
 
 const TEXTOS: Record<Lado, { titulo: string; sub: string; entrar: string }> = {
   PADRINHO: {
     titulo: "Acompanhe seu afilhado\nde perto.",
     sub: "Veja a evolução, a Tábua da Maré e as novidades do seu afilhado ou afilhada.",
     entrar: "Entrar como padrinho(a)",
-  },
-  PEDAGOGICO: {
-    titulo: "Onde cada criança\nencontra um novo mundo.",
-    sub: "Matrícula, apadrinhamento, Tábua da Maré e indicadores pedagógicos das crianças.",
-    entrar: "Entrar no Pedagógico",
   },
   PORTAL: {
     titulo: "O portal institucional\ndo instituto.",
@@ -31,12 +26,10 @@ const TEXTOS: Record<Lado, { titulo: string; sub: string; entrar: string }> = {
 
 const ACCENT_VAR: Record<Lado, string> = {
   PADRINHO: "var(--imla-pink)",
-  PEDAGOGICO: "var(--imla-green)",
   PORTAL: "var(--imla-teal)",
 };
 const ACCENT_DARK_VAR: Record<Lado, string> = {
   PADRINHO: "#e0568f",
-  PEDAGOGICO: "var(--imla-green-dark)",
   PORTAL: "var(--imla-teal-dark)",
 };
 
@@ -151,7 +144,6 @@ export function AuthScreen() {
 function SeletorDeSistema({ lado, onChange }: { lado: Lado; onChange: (l: Lado) => void }) {
   const opcoes: { key: Lado; label: string }[] = [
     { key: "PADRINHO", label: "💌 Padrinho" },
-    { key: "PEDAGOGICO", label: "📚 Pedagógico" },
     { key: "PORTAL", label: "📣 Portal" },
   ];
   const indice = opcoes.findIndex((o) => o.key === lado);
@@ -159,15 +151,15 @@ function SeletorDeSistema({ lado, onChange }: { lado: Lado; onChange: (l: Lado) 
   return (
     <div className="relative flex rounded-full bg-black/5 p-1 dark:bg-white/10">
       <div
-        className="absolute inset-y-1 w-[calc(33.333%-4px)] rounded-full bg-imla-accent shadow transition-all duration-300 ease-out"
-        style={{ left: `calc(${indice} * 33.333% + 4px)` }}
+        className="absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-imla-accent shadow transition-all duration-300 ease-out"
+        style={{ left: `calc(${indice} * 50% + 4px)` }}
       />
       {opcoes.map((o) => (
         <button
           key={o.key}
           type="button"
           onClick={() => onChange(o.key)}
-          className={`relative z-10 flex-1 whitespace-nowrap rounded-full py-2.5 text-[10px] font-extrabold uppercase tracking-normal transition-colors sm:text-xs sm:tracking-wide ${
+          className={`relative z-10 flex-1 whitespace-nowrap rounded-full py-2.5 text-xs font-extrabold uppercase tracking-wide transition-colors ${
             lado === o.key ? "text-white" : "text-foreground/60"
           }`}
         >

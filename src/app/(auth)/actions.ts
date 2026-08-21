@@ -57,6 +57,18 @@ export async function entrar(_prev: FormState, formData: FormData): Promise<Form
     return erroGenerico;
   }
 
+  const destino = formData.get("destino") === "PORTAL" ? "PORTAL" : "PADRINHO";
+
+  // A aba escolhida na tela de login também funciona como controle de acesso:
+  // um login de núcleo/coordenação não pode entrar pela aba de Padrinho, e
+  // vice-versa — mesmo que a senha esteja certa.
+  if (destino === "PADRINHO" && usuario.papel !== "PADRINHO") {
+    return erroGenerico;
+  }
+  if (destino === "PORTAL" && usuario.papel === "PADRINHO") {
+    return erroGenerico;
+  }
+
   if (usuario.tentativasFalhas > 0 || usuario.bloqueadoAte) {
     await prisma.usuario.update({
       where: { id: usuario.id },
@@ -72,15 +84,11 @@ export async function entrar(_prev: FormState, formData: FormData): Promise<Form
     nucleo: usuario.nucleo,
   });
 
-  const destinoForm = formData.get("destino");
-  const destino = destinoForm === "PEDAGOGICO" ? "PEDAGOGICO" : destinoForm === "PORTAL" ? "PORTAL" : "PADRINHO";
-  redirect(destinoPosLogin(usuario.papel, destino));
+  redirect(destinoPosLogin(usuario.papel));
 }
 
-function destinoPosLogin(papel: string, destino: "PADRINHO" | "PEDAGOGICO" | "PORTAL") {
+function destinoPosLogin(papel: string) {
   if (papel === "PADRINHO") return "/painel/apadrinhamento";
-  if (papel === "NUCLEO") return "/painel/intranet";
-  if (papel === "ADMIN") return destino === "PEDAGOGICO" ? "/painel/pedagogico" : "/painel/intranet";
   return "/painel/intranet";
 }
 

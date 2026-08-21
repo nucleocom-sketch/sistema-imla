@@ -6,10 +6,10 @@ import { prisma } from "@/lib/db";
 import { obterSessao } from "@/lib/auth";
 import { notificarNovaPostagemPublica } from "@/lib/push";
 
-async function exigirAdmin() {
+async function exigirGestaoOuNucleo() {
   const sessao = await obterSessao();
-  if (!sessao || sessao.papel !== "ADMIN") {
-    throw new Error("Apenas a coordenação pode publicar direto na Rede Social.");
+  if (!sessao || (sessao.papel !== "ADMIN" && sessao.papel !== "NUCLEO")) {
+    throw new Error("Apenas a coordenação e os núcleos podem publicar na Rede Social.");
   }
   return sessao;
 }
@@ -21,14 +21,14 @@ const urlImagemSchema = z
   });
 
 export async function criarPostagemDireta(formData: FormData) {
-  const sessao = await exigirAdmin();
+  const sessao = await exigirGestaoOuNucleo();
 
   const texto = z.string().min(1).parse(formData.get("texto"));
   const imagemUrl = urlImagemSchema.parse((formData.get("imagemUrl") as string) ?? "");
 
   await prisma.postagem.create({
     data: {
-      nucleo: null,
+      nucleo: sessao.papel === "NUCLEO" ? sessao.nucleo : null,
       texto,
       imagemUrl: imagemUrl || null,
       publica: true,
@@ -42,10 +42,12 @@ export async function criarPostagemDireta(formData: FormData) {
 }
 
 export async function excluirPostagemDireta(formData: FormData) {
-  await exigirAdmin();
+  const sessao = await exigirGestaoOuNucleo();
   const id = z.string().parse(formData.get("id"));
 
-  await prisma.postagem.delete({ where: { id } });
+  await prisma.postagem.deleteMany({
+    where: sessao.papel === "ADMIN" ? { id } : { id, autorId: sessao.userId },
+  });
 
   revalidatePath("/painel/portal-direto");
   revalidatePath("/rede-social");

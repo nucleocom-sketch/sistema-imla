@@ -21,15 +21,24 @@ const LINKS_ADMIN = [
   { href: "/painel/portal-direto", label: "📸 Rede Social" },
 ];
 
-const LINKS_NUCLEO = [{ href: "/painel/intranet", label: "Portal Institucional" }];
-
 const LINKS_PADRINHO = [{ href: "/painel/apadrinhamento", label: "Meu afilhado" }];
+
+function linksDoNucleo(nucleo: NucleoKey | null) {
+  const links = [
+    { href: "/painel/intranet", label: "Portal Institucional" },
+    { href: "/painel/portal-direto", label: "📸 Rede Social" },
+  ];
+  if (nucleo === "PEDAGOGICO") {
+    links.splice(1, 0, { href: "/painel/pedagogico", label: "Pedagógico" });
+  }
+  return links;
+}
 
 export function Navbar({ nome, papel, nucleo }: NavbarProps) {
   const pathname = usePathname();
   const [aberto, setAberto] = useState(false);
 
-  const links = papel === "ADMIN" ? LINKS_ADMIN : papel === "NUCLEO" ? LINKS_NUCLEO : LINKS_PADRINHO;
+  const links = papel === "ADMIN" ? LINKS_ADMIN : papel === "NUCLEO" ? linksDoNucleo(nucleo) : LINKS_PADRINHO;
 
   const iniciais = nome
     .split(" ")

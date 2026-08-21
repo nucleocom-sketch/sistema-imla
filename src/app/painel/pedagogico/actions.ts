@@ -9,8 +9,8 @@ import type { Sala, NivelAlfabetizacao, EtapaAvaliacao } from "@prisma/client";
 
 async function exigirAdmin() {
   const sessao = await obterSessao();
-  if (!sessao || sessao.papel !== "ADMIN") {
-    throw new Error("Apenas a coordenação pode fazer isso.");
+  if (!sessao || (sessao.papel !== "ADMIN" && !(sessao.papel === "NUCLEO" && sessao.nucleo === "PEDAGOGICO"))) {
+    throw new Error("Apenas a coordenação e o núcleo pedagógico podem fazer isso.");
   }
   return sessao;
 }

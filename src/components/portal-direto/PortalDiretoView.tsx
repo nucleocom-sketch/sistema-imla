@@ -5,11 +5,13 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { TextoFormatado } from "@/components/ui/TextoFormatado";
 import { criarPostagemDireta, excluirPostagemDireta } from "@/app/painel/portal-direto/actions";
+import { NUCLEOS, type NucleoKey } from "@/lib/config";
 
 type Postagem = {
   id: string;
   texto: string;
   imagemUrl: string | null;
+  nucleo: NucleoKey | null;
   criadoEm: Date;
   autor: { nome: string };
 };
@@ -62,6 +64,9 @@ export function PortalDiretoView({ postagens }: { postagens: Postagem[] }) {
               </div>
             )}
             <div className="p-4">
+              <span className="mb-2 inline-block rounded-full bg-black/5 px-3 py-1 text-[10px] font-extrabold uppercase text-foreground/60 dark:bg-white/10">
+                {p.nucleo ? `${NUCLEOS[p.nucleo].icon} ${NUCLEOS[p.nucleo].label}` : "🏠 Instituto Mãe Lalu"}
+              </span>
               <TextoFormatado texto={p.texto} className="text-sm text-foreground/80" />
               <p className="mt-3 text-[11px] font-semibold text-foreground/40">
                 {p.autor.nome} · {formatarData(p.criadoEm)}
