@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { NUCLEOS } from "@/lib/config";
 import { NotificacoesRedeSocial } from "@/components/NotificacoesRedeSocial";
+import { TextoFormatado } from "@/components/ui/TextoFormatado";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,7 @@ export default async function RedeSocialPage() {
                 </div>
               </div>
 
-              <p className="whitespace-pre-line px-4 py-3 text-sm text-foreground/80">{p.texto}</p>
+              <TextoFormatado texto={p.texto} className="px-4 py-3 text-sm text-foreground/80" />
 
               {p.imagemUrl && (
                 <div className="relative h-72 w-full">

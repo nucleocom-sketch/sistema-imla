@@ -4,7 +4,6 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { obterSessao } from "@/lib/auth";
-import { notificarNovaPostagemPublica } from "@/lib/push";
 import type { Nucleo, StatusTarefa, Prioridade } from "@prisma/client";
 
 async function exigirMembroDoNucleo(nucleo: Nucleo) {
@@ -22,29 +21,6 @@ function lerPublico(formData: FormData) {
     throw new Error("Confirme que deseja tornar isso público antes de salvar.");
   }
   return publica;
-}
-
-const urlImagemSchema = z
-  .string()
-  .refine((v) => v === "" || /^https:\/\//i.test(v) || /^http:\/\//i.test(v), {
-    message: "O link da imagem precisa começar com http:// ou https://",
-  });
-
-export async function criarPostagem(formData: FormData) {
-  const nucleo = formData.get("nucleo") as Nucleo;
-  const sessao = await exigirMembroDoNucleo(nucleo);
-
-  const texto = z.string().min(1).parse(formData.get("texto"));
-  const publica = lerPublico(formData);
-  const imagemUrl = urlImagemSchema.parse((formData.get("imagemUrl") as string) ?? "");
-
-  await prisma.postagem.create({
-    data: { nucleo, texto, publica, imagemUrl: imagemUrl || null, autorId: sessao.userId },
-  });
-
-  revalidatePath("/painel/intranet");
-  revalidatePath("/rede-social");
-  if (publica) await notificarNovaPostagemPublica(texto);
 }
 
 export async function criarTarefa(formData: FormData) {

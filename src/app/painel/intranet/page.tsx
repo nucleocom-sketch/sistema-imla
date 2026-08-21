@@ -22,13 +22,7 @@ export default async function IntranetPage({
   const podeEditar = sessao.papel === "ADMIN" || (sessao.papel === "NUCLEO" && sessao.nucleo === nucleoAtual);
 
   try {
-    const [postagens, tarefas, lembretes, caixaEntrada, links] = await Promise.all([
-      prisma.postagem.findMany({
-        where: podeEditar ? { nucleo: nucleoAtual } : { nucleo: nucleoAtual, publica: true },
-        include: { autor: { select: { nome: true } } },
-        orderBy: { criadoEm: "desc" },
-        take: 30,
-      }),
+    const [tarefas, lembretes, caixaEntrada, links] = await Promise.all([
       prisma.tarefa.findMany({
         where: podeEditar ? { nucleo: nucleoAtual } : { nucleo: nucleoAtual, publica: true },
         include: { autor: { select: { nome: true } } },
@@ -56,7 +50,6 @@ export default async function IntranetPage({
         nucleoAtual={nucleoAtual}
         podeEditar={podeEditar}
         podeVerCaixaCompleta={podeEditar}
-        postagens={postagens}
         tarefas={tarefas}
         lembretes={lembretes}
         caixaEntrada={caixaEntrada}

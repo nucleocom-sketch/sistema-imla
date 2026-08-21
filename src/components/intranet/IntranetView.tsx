@@ -12,7 +12,6 @@ import {
   type NucleoKey,
 } from "@/lib/config";
 import {
-  criarPostagem,
   criarTarefa,
   atualizarTarefa,
   excluirTarefa,
@@ -28,7 +27,6 @@ import { InstitucionalHero } from "@/components/intranet/InstitucionalHero";
 
 type Autor = { nome: string };
 
-type Postagem = { id: string; texto: string; publica: boolean; criadoEm: Date; autor: Autor };
 type Tarefa = {
   id: string;
   titulo: string;
@@ -68,7 +66,6 @@ type Props = {
   nucleoAtual: NucleoKey;
   podeEditar: boolean;
   podeVerCaixaCompleta: boolean;
-  postagens: Postagem[];
   tarefas: Tarefa[];
   lembretes: Lembrete[];
   caixaEntrada: Solicitacao[];
@@ -76,7 +73,6 @@ type Props = {
 };
 
 const ABAS = [
-  { key: "novidades", label: "Novidades" },
   { key: "tarefas", label: "Demandas" },
   { key: "lembretes", label: "Avisos" },
   { key: "links", label: "Links" },
@@ -107,13 +103,12 @@ function formatarDataCalendario(data: Date) {
 export function IntranetView({
   nucleoAtual,
   podeEditar,
-  postagens,
   tarefas,
   lembretes,
   caixaEntrada,
   links,
 }: Props) {
-  const [aba, setAbaState] = useState<AbaKey>("novidades");
+  const [aba, setAbaState] = useState<AbaKey>("tarefas");
   const cfg = NUCLEOS[nucleoAtual];
   const abaStorageKey = `imla:aba:${nucleoAtual}`;
 
@@ -175,9 +170,6 @@ export function IntranetView({
         ))}
       </div>
 
-      {aba === "novidades" && (
-        <AbaNovidades nucleoAtual={nucleoAtual} podeEditar={podeEditar} postagens={postagens} />
-      )}
       {aba === "tarefas" && (
         <AbaTarefas nucleoAtual={nucleoAtual} podeEditar={podeEditar} tarefas={tarefas} />
       )}
@@ -194,63 +186,6 @@ export function IntranetView({
           caixaEntrada={caixaEntrada}
         />
       )}
-    </div>
-  );
-}
-
-function AbaNovidades({
-  nucleoAtual,
-  podeEditar,
-  postagens,
-}: {
-  nucleoAtual: NucleoKey;
-  podeEditar: boolean;
-  postagens: Postagem[];
-}) {
-  const [desabilitado, setDesabilitado] = useState(false);
-
-  return (
-    <div className="flex flex-col gap-4">
-      {podeEditar && (
-        <GlassCard className="p-5">
-          <form action={criarPostagem} className="flex flex-col gap-3">
-            <input type="hidden" name="nucleo" value={nucleoAtual} />
-            <textarea
-              name="texto"
-              required
-              rows={3}
-              placeholder="Compartilhar algo novo com o núcleo..."
-              className="w-full rounded-xl border border-foreground/10 bg-white/70 p-3 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
-            />
-            <PublicoToggle
-              aviso="Novidades públicas ficam visíveis para qualquer pessoa no Portal Institucional, incluindo visitantes."
-              onDisabledChange={setDesabilitado}
-            />
-            <Button type="submit" className="self-end" disabled={desabilitado}>
-              Publicar
-            </Button>
-          </form>
-        </GlassCard>
-      )}
-
-      {postagens.length === 0 && (
-        <p className="text-sm text-foreground/50">Nenhuma atualização ainda.</p>
-      )}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {postagens.map((p) => (
-          <GlassCard key={p.id} className="p-5">
-            <p className="text-[11px] font-extrabold uppercase tracking-wide text-imla-accent-dark">
-              {p.publica ? "🌐 Público" : "🔒 Privado"}
-            </p>
-            <p className="mt-1 text-sm font-extrabold">{p.autor.nome}</p>
-            <p className="mt-2 text-sm text-foreground/70">{p.texto}</p>
-            <p className="mt-3 text-[11px] font-semibold text-foreground/40">
-              {formatarData(p.criadoEm)}
-            </p>
-          </GlassCard>
-        ))}
-      </div>
     </div>
   );
 }
@@ -591,7 +526,7 @@ function AbaLinks({
                         setErro(null);
                       }}
                     />
-                    🔒 Privado (só o núcleo)
+                    🔒 Privado
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -604,7 +539,7 @@ function AbaLinks({
                         setConfirmou(false);
                       }}
                     />
-                    🌐 Público (todos veem)
+                    🌐 Público
                   </label>
                 </div>
 

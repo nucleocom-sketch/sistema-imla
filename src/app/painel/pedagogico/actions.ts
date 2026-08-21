@@ -53,11 +53,17 @@ export async function definirPadrinho(formData: FormData) {
   if (email) {
     const existente = await prisma.usuario.findUnique({ where: { email } });
 
-    if (existente) {
+    if (existente && existente.papel !== "PADRINHO") {
+      // E-mail já pertence a uma conta de coordenação/núcleo — nunca sobrescrever
+      // essas credenciais, mesmo que a coordenação tenha digitado esse e-mail aqui.
+      throw new Error(
+        "Esse e-mail já pertence a uma conta da coordenação ou de um núcleo — não é possível vincular como padrinho."
+      );
+    } else if (existente) {
       // Vincula uma conta já auto-cadastrada pelo padrinho/madrinha (sem mexer na senha).
       await prisma.usuario.update({
         where: { email },
-        data: { nome: padrinho, papel: "PADRINHO" },
+        data: { nome: padrinho },
       });
     } else if (senha) {
       const bcrypt = (await import("bcryptjs")).default;

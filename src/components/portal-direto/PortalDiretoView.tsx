@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { TextoFormatado } from "@/components/ui/TextoFormatado";
 import { criarPostagemDireta, excluirPostagemDireta } from "@/app/painel/portal-direto/actions";
 
 type Postagem = {
@@ -28,10 +29,7 @@ export function PortalDiretoView({ postagens }: { postagens: Postagem[] }) {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-black">📸 Postar na Rede Social</h1>
-        <p className="mt-1 text-sm text-foreground/60">
-          Essas postagens vão direto para o feed público, sem passar por nenhum
-          núcleo específico — aparecem como novidades do Instituto Mãe Lalu.
-        </p>
+        <p className="mt-1 text-xs text-foreground/50">Vai direto para o feed público.</p>
       </div>
 
       <GlassCard className="p-5">
@@ -64,7 +62,7 @@ export function PortalDiretoView({ postagens }: { postagens: Postagem[] }) {
               </div>
             )}
             <div className="p-4">
-              <p className="text-sm text-foreground/80">{p.texto}</p>
+              <TextoFormatado texto={p.texto} className="text-sm text-foreground/80" />
               <p className="mt-3 text-[11px] font-semibold text-foreground/40">
                 {p.autor.nome} · {formatarData(p.criadoEm)}
               </p>

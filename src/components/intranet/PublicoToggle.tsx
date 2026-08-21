@@ -31,7 +31,7 @@ export function PublicoToggle({
               setConfirmou(false);
             }}
           />
-          🔒 Privado (só o núcleo)
+          🔒 Privado
         </label>
         <label className="flex items-center gap-2">
           <input
@@ -44,7 +44,7 @@ export function PublicoToggle({
               setConfirmou(false);
             }}
           />
-          🌐 Público (todos veem)
+          🌐 Público
         </label>
       </div>
 

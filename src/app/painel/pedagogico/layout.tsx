@@ -23,7 +23,7 @@ export default async function PedagogicoLayout({ children }: LayoutProps<"/paine
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-1 rounded-full bg-black/5 p-1 dark:bg-white/5">
+      <div className="flex flex-wrap gap-1 rounded-2xl bg-black/5 p-1 dark:bg-white/5">
         {ABAS.map((a) => (
           <Link
             key={a.href}
