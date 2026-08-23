@@ -18,6 +18,7 @@ const LINKS_ADMIN = [
   { href: "/painel/intranet", label: "Portal Institucional" },
   { href: "/painel/pedagogico", label: "Pedagógico" },
   { href: "/painel/apadrinhamento", label: "Apadrinhamento" },
+  { href: "/painel/calendario", label: "🗓️ Calendário" },
   { href: "/painel/portal-direto", label: "📸 Rede Social" },
 ];
 
@@ -26,6 +27,7 @@ const LINKS_PADRINHO = [{ href: "/painel/apadrinhamento", label: "Meu afilhado" 
 function linksDoNucleo(nucleo: NucleoKey | null) {
   const links = [
     { href: "/painel/intranet", label: "Portal Institucional" },
+    { href: "/painel/calendario", label: "🗓️ Calendário" },
     { href: "/painel/portal-direto", label: "📸 Rede Social" },
   ];
   if (nucleo === "PEDAGOGICO") {

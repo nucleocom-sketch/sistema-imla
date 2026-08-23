@@ -22,7 +22,11 @@ export default async function IntranetPage({
   const podeEditar = sessao.papel === "ADMIN" || (sessao.papel === "NUCLEO" && sessao.nucleo === nucleoAtual);
 
   try {
-    const [tarefas, lembretes, caixaEntrada, links] = await Promise.all([
+    const filtroSolicitacoes = podeEditar
+      ? { OR: [{ nucleoDestino: nucleoAtual }, { nucleoDestino: null }] }
+      : { OR: [{ nucleoDestino: nucleoAtual }, { nucleoDestino: null }], publica: true };
+
+    const [tarefas, lembretes, caixaEntrada, links, cirandas] = await Promise.all([
       prisma.tarefa.findMany({
         where: podeEditar ? { nucleo: nucleoAtual } : { nucleo: nucleoAtual, publica: true },
         include: { autor: { select: { nome: true } } },
@@ -34,7 +38,7 @@ export default async function IntranetPage({
         orderBy: { proximaData: "asc" },
       }),
       prisma.solicitacao.findMany({
-        where: podeEditar ? { nucleoDestino: nucleoAtual } : { nucleoDestino: nucleoAtual, publica: true },
+        where: filtroSolicitacoes,
         include: { de: { select: { nome: true, nucleo: true } } },
         orderBy: { criadoEm: "desc" },
       }),
@@ -43,6 +47,13 @@ export default async function IntranetPage({
         include: { autor: { select: { nome: true } } },
         orderBy: { criadoEm: "desc" },
       }),
+      nucleoAtual === "PEDAGOGICO"
+        ? prisma.ciranda.findMany({
+            include: { autor: { select: { nome: true } } },
+            orderBy: { criadoEm: "desc" },
+            take: 20,
+          })
+        : Promise.resolve([]),
     ]);
 
     return (
@@ -54,6 +65,7 @@ export default async function IntranetPage({
         lembretes={lembretes}
         caixaEntrada={caixaEntrada}
         links={links}
+        cirandas={cirandas}
       />
     );
   } catch {

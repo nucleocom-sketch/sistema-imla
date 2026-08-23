@@ -1,12 +1,49 @@
 export const NUCLEOS = {
-  ADMINISTRATIVO_FINANCEIRO: { label: "Administrativo e Financeiro", icon: "💰" },
-  PROJETOS_CAPTACAO: { label: "Projetos e Captação de Recursos", icon: "🤝" },
-  JURIDICO_SOCIAL: { label: "Jurídico Social", icon: "⚖️" },
-  TECNOLOGIA_COMUNICACAO: { label: "Tecnologia e Comunicação", icon: "💻" },
-  ESPORTE_LAZER: { label: "Esporte e Lazer", icon: "⚽" },
-  PEDAGOGICO: { label: "Pedagógico", icon: "📚" },
-  SAUDE_MEIO_AMBIENTE: { label: "Saúde e Meio Ambiente", icon: "🌱" },
-  APOIO_INFRAESTRUTURA: { label: "Apoio e Infraestrutura", icon: "🛠️" },
+  ADMINISTRATIVO_FINANCEIRO: {
+    label: "Administrativo e Financeiro",
+    icon: "💰",
+    integrantes: ["Leilane", "Lavínia", "Oraildes"],
+  },
+  PROJETOS_CAPTACAO: {
+    label: "Projetos e Captação de Recursos",
+    icon: "🤝",
+    integrantes: ["Maria", "Cris Andrade", "Odezina", "Liane", "Valdineia", "Olga", "Cris da Mata"],
+  },
+  JURIDICO_SOCIAL: {
+    label: "Jurídico",
+    icon: "⚖️",
+    integrantes: ["Elton", "Aninha", "Lavínia"],
+  },
+  TECNOLOGIA_COMUNICACAO: {
+    label: "Tecnologia e Comunicação",
+    icon: "💻",
+    integrantes: ["Neto", "Marcos", "Natália", "Jailson", "Marcos Paulo", "Gustavo"],
+  },
+  ESPORTE_LAZER: {
+    label: "Esporte e Lazer",
+    icon: "⚽",
+    integrantes: ["Irinaldo", "Márcio", "Isabel"],
+  },
+  PEDAGOGICO: {
+    label: "Pedagógico",
+    icon: "📚",
+    integrantes: ["Adenildes", "Jovelina", "Mari", "Nati", "Odezina", "Jamile", "Patrícia", "Larissa", "Amanda", "Olga"],
+  },
+  SAUDE_MEIO_AMBIENTE: {
+    label: "Saúde e Meio Ambiente",
+    icon: "🌱",
+    integrantes: ["Oralízia", "Lucas", "Nadja", "Diana", "Marina"],
+  },
+  APOIO_INFRAESTRUTURA: {
+    label: "Apoio e Infraestrutura",
+    icon: "🛠️",
+    integrantes: ["Elias", "Jutay", "Antônio", "Manoel"],
+  },
+  APADRINHAMENTO: {
+    label: "Apadrinhamento",
+    icon: "💌",
+    integrantes: [] as string[],
+  },
 } as const;
 
 export type NucleoKey = keyof typeof NUCLEOS;

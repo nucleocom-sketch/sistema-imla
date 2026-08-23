@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
+import { InstalarApp } from "@/components/InstalarApp";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </div>
         {children}
         <RegistrarServiceWorker />
+        <InstalarApp />
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
+import { NotificacoesRedeSocial } from "@/components/NotificacoesRedeSocial";
 import type { NucleoKey } from "@/lib/config";
 import type { Papel } from "@prisma/client";
 
@@ -25,7 +26,14 @@ export function PainelShell({ nome, papel, nucleo, children }: Props) {
   return (
     <div className="flex min-h-dvh flex-col pb-10" style={accentStyle}>
       <Navbar nome={nome} papel={papel} nucleo={nucleo} />
-      <main className="mx-3 mt-6 flex-1 sm:mx-6">{children}</main>
+      <main className="mx-3 mt-6 flex-1 sm:mx-6">
+        {(papel === "ADMIN" || papel === "NUCLEO") && (
+          <div className="mb-6">
+            <NotificacoesRedeSocial descricao="Receba avisos de solicitações para o seu núcleo, reuniões, demandas vencendo e novidades da Rede Social." />
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

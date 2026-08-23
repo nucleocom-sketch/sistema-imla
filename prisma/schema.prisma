@@ -22,6 +22,7 @@ enum Nucleo {
   PEDAGOGICO
   SAUDE_MEIO_AMBIENTE
   APOIO_INFRAESTRUTURA
+  APADRINHAMENTO
 }
 
 enum Sala {
@@ -68,6 +69,11 @@ enum NivelMare {
   CHEIA
 }
 
+enum Recorrencia {
+  NENHUMA
+  MENSAL
+}
+
 model Usuario {
   id            String    @id @default(cuid())
   nome          String
@@ -84,6 +90,8 @@ model Usuario {
   lembretes     Lembrete[]
   solicitacoesEnviadas Solicitacao[] @relation("solicitacoesEnviadas")
   links         LinkNucleo[]
+  cirandas      Ciranda[]
+  eventosCalendario EventoCalendario[]
 }
 
 model Aluno {
@@ -153,6 +161,11 @@ model Tarefa {
   status      StatusTarefa @default(CRIADA)
   prioridade  Prioridade   @default(MEDIA)
   publica     Boolean      @default(false)
+  prazo       DateTime?
+  recorrencia Recorrencia  @default(NENHUMA)
+  diaRecorrencia Int?
+  anexos      String[]     @default([])
+  ultimoVencimentoNotificado String?
   autor       Usuario      @relation(fields: [autorId], references: [id])
   autorId     String
   criadoEm    DateTime     @default(now())
@@ -183,7 +196,7 @@ model LinkNucleo {
 
 model Solicitacao {
   id           String   @id @default(cuid())
-  nucleoDestino Nucleo
+  nucleoDestino Nucleo?
   assunto      String
   mensagem     String?
   publica      Boolean  @default(false)
@@ -197,5 +210,28 @@ model PushSubscription {
   endpoint  String   @unique
   p256dh    String
   auth      String
+  nucleo    Nucleo?
+  papel     Papel?
+  criadoEm  DateTime @default(now())
+}
+
+model Ciranda {
+  id             String   @id @default(cuid())
+  semana         String
+  tema           String
+  desenvolvimento String
+  anexos         String[] @default([])
+  autor          Usuario  @relation(fields: [autorId], references: [id])
+  autorId        String
+  criadoEm       DateTime @default(now())
+}
+
+model EventoCalendario {
+  id        String   @id @default(cuid())
+  titulo    String
+  descricao String?
+  data      DateTime
+  autor     Usuario  @relation(fields: [autorId], references: [id])
+  autorId   String
   criadoEm  DateTime @default(now())
 }

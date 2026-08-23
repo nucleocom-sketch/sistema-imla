@@ -20,10 +20,15 @@ import {
   criarLink,
   excluirLink,
   enviarSolicitacao,
+  enviarNotificacaoReuniao,
+  criarCiranda,
+  excluirCiranda,
 } from "@/app/painel/intranet/actions";
 import { PublicoToggle } from "@/components/intranet/PublicoToggle";
 import { Select } from "@/components/ui/Select";
 import { InstitucionalHero } from "@/components/intranet/InstitucionalHero";
+import { TextoFormatado } from "@/components/ui/TextoFormatado";
+import { AnexosField, ListaAnexos } from "@/components/ui/AnexosField";
 
 type Autor = { nome: string };
 
@@ -34,6 +39,19 @@ type Tarefa = {
   status: keyof typeof STATUS_TAREFA;
   prioridade: keyof typeof PRIORIDADES;
   publica: boolean;
+  prazo: Date | null;
+  recorrencia: "NENHUMA" | "MENSAL";
+  diaRecorrencia: number | null;
+  anexos: string[];
+  criadoEm: Date;
+  autor: Autor;
+};
+type Ciranda = {
+  id: string;
+  semana: string;
+  tema: string;
+  desenvolvimento: string;
+  anexos: string[];
   criadoEm: Date;
   autor: Autor;
 };
@@ -70,16 +88,19 @@ type Props = {
   lembretes: Lembrete[];
   caixaEntrada: Solicitacao[];
   links: LinkItem[];
+  cirandas: Ciranda[];
 };
 
-const ABAS = [
+const ABAS_BASE = [
   { key: "tarefas", label: "Demandas" },
   { key: "lembretes", label: "Avisos" },
   { key: "links", label: "Links" },
   { key: "solicitacoes", label: "Solicitações" },
 ] as const;
 
-type AbaKey = (typeof ABAS)[number]["key"];
+const ABA_CIRANDA = { key: "ciranda", label: "Próxima Ciranda" } as const;
+
+type AbaKey = (typeof ABAS_BASE)[number]["key"] | typeof ABA_CIRANDA.key;
 
 function formatarData(data: Date) {
   return new Date(data).toLocaleDateString("pt-BR", {
@@ -107,16 +128,19 @@ export function IntranetView({
   lembretes,
   caixaEntrada,
   links,
+  cirandas,
 }: Props) {
+  const abas = nucleoAtual === "PEDAGOGICO" ? [...ABAS_BASE, ABA_CIRANDA] : ABAS_BASE;
   const [aba, setAbaState] = useState<AbaKey>("tarefas");
+  const [reuniaoAberta, setReuniaoAberta] = useState(false);
   const cfg = NUCLEOS[nucleoAtual];
   const abaStorageKey = `imla:aba:${nucleoAtual}`;
 
-  // Lembra em qual aba (Novidades/Demandas/Avisos/...) a pessoa estava neste
-  // núcleo, para não perder o lugar ao sair para outra página e voltar.
+  // Lembra em qual aba (Demandas/Avisos/...) a pessoa estava neste núcleo,
+  // para não perder o lugar ao sair para outra página e voltar.
   useEffect(() => {
     const salva = sessionStorage.getItem(abaStorageKey) as AbaKey | null;
-    if (salva && ABAS.some((a) => a.key === salva)) setAbaState(salva);
+    if (salva && abas.some((a) => a.key === salva)) setAbaState(salva);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nucleoAtual]);
 
@@ -149,6 +173,11 @@ export function IntranetView({
         <h1 className="text-2xl font-black">
           {cfg.icon} {cfg.label}
         </h1>
+        {cfg.integrantes.length > 0 && (
+          <p className="mt-1 text-xs font-semibold text-foreground/50">
+            👥 {cfg.integrantes.join(" · ")}
+          </p>
+        )}
         {!podeEditar && (
           <p className="mt-1 text-xs font-bold text-foreground/50">
             👁️ Modo leitura — você está vendo este núcleo apenas para visualização.
@@ -156,8 +185,19 @@ export function IntranetView({
         )}
       </div>
 
+      {podeEditar && (
+        <div>
+          <Button variant="secondary" onClick={() => setReuniaoAberta((v) => !v)}>
+            📅 Notificar reunião
+          </Button>
+          {reuniaoAberta && (
+            <FormularioReuniao nucleoAtual={nucleoAtual} onEnviado={() => setReuniaoAberta(false)} />
+          )}
+        </div>
+      )}
+
       <div className="flex gap-1 overflow-x-auto rounded-full bg-black/5 p-1 dark:bg-white/5 [mask-image:linear-gradient(to_right,black_88%,transparent_100%)]">
-        {ABAS.map((a) => (
+        {abas.map((a) => (
           <button
             key={a.key}
             onClick={() => setAba(a.key)}
@@ -186,7 +226,55 @@ export function IntranetView({
           caixaEntrada={caixaEntrada}
         />
       )}
+      {aba === "ciranda" && (
+        <AbaCiranda podeEditar={podeEditar} cirandas={cirandas} />
+      )}
     </div>
+  );
+}
+
+function FormularioReuniao({
+  nucleoAtual,
+  onEnviado,
+}: {
+  nucleoAtual: NucleoKey;
+  onEnviado: () => void;
+}) {
+  return (
+    <GlassCard className="mt-3 p-5">
+      <form
+        action={async (formData) => {
+          await enviarNotificacaoReuniao(formData);
+          onEnviado();
+        }}
+        className="flex flex-col gap-3"
+      >
+        <input type="hidden" name="nucleoOrigem" value={nucleoAtual} />
+        <input
+          name="titulo"
+          required
+          placeholder="Título do aviso (ex: Reunião extraordinária amanhã 14h)"
+          className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+        />
+        <textarea
+          name="detalhes"
+          rows={2}
+          placeholder="Detalhes (opcional)"
+          className="w-full rounded-xl border border-foreground/10 bg-white/70 p-3 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+        />
+        <Select
+          name="alcance"
+          defaultValue="NUCLEO"
+          options={[
+            { value: "NUCLEO", label: `Só o meu núcleo (${NUCLEOS[nucleoAtual].label})` },
+            { value: "TODOS", label: "Todos os núcleos e a coordenação" },
+          ]}
+        />
+        <Button type="submit" className="self-end">
+          🔔 Enviar notificação
+        </Button>
+      </form>
+    </GlassCard>
   );
 }
 
@@ -203,6 +291,7 @@ function AbaTarefas({
 }) {
   const [aberto, setAberto] = useState(false);
   const [desabilitado, setDesabilitado] = useState(false);
+  const [tipoPrazo, setTipoPrazo] = useState("SEM_PRAZO");
 
   return (
     <div className="flex flex-col gap-4">
@@ -224,7 +313,7 @@ function AbaTarefas({
                 <textarea
                   name="descricao"
                   rows={2}
-                  placeholder="Descrição (o que precisa ser feito)"
+                  placeholder="Descrição (o que precisa ser feito) — links colados aqui ficam clicáveis"
                   className="w-full rounded-xl border border-foreground/10 bg-white/70 p-3 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
                 />
                 <Select
@@ -232,6 +321,42 @@ function AbaTarefas({
                   defaultValue="MEDIA"
                   options={Object.entries(PRIORIDADES).map(([key, p]) => ({ value: key, label: p.label }))}
                 />
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-foreground/70">Prazo</label>
+                  <Select
+                    name="tipoPrazo"
+                    value={tipoPrazo}
+                    onChange={setTipoPrazo}
+                    options={[
+                      { value: "SEM_PRAZO", label: "Sem prazo" },
+                      { value: "PRAZO_FINAL", label: "Tem uma data final" },
+                      { value: "MENSAL", label: "Se repete todo mês" },
+                    ]}
+                  />
+                </div>
+                {tipoPrazo === "PRAZO_FINAL" && (
+                  <input
+                    type="date"
+                    name="prazo"
+                    required
+                    className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                  />
+                )}
+                {tipoPrazo === "MENSAL" && (
+                  <input
+                    type="number"
+                    name="diaRecorrencia"
+                    required
+                    min={1}
+                    max={31}
+                    placeholder="Todo dia (ex: 5)"
+                    className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                  />
+                )}
+
+                <AnexosField />
+
                 <PublicoToggle
                   aviso="Demandas públicas ficam visíveis para qualquer pessoa no Portal Institucional, incluindo visitantes."
                   onDisabledChange={setDesabilitado}
@@ -280,17 +405,42 @@ function CartaoTarefa({
   const [editando, setEditando] = useState(false);
   const cor = PRIORIDADES[tarefa.prioridade].cor;
 
+  const hoje = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()));
+  const vencida =
+    tarefa.status !== "CONCLUIDA" &&
+    ((tarefa.prazo && new Date(tarefa.prazo) < hoje) ||
+      (tarefa.recorrencia === "MENSAL" && tarefa.diaRecorrencia !== null && tarefa.diaRecorrencia < hoje.getUTCDate()));
+
   return (
     <GlassCard className="border-l-4 p-4" style={{ borderLeftColor: cor }}>
       <p className="text-sm font-extrabold">{tarefa.titulo}</p>
       {tarefa.descricao && (
-        <p className="mt-1 text-xs text-foreground/60">{tarefa.descricao}</p>
+        <TextoFormatado texto={tarefa.descricao} className="mt-1 text-xs text-foreground/60" />
       )}
+      <ListaAnexos anexos={tarefa.anexos} />
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Badge label={PRIORIDADES[tarefa.prioridade].label} color={cor} />
         <span className="rounded-full bg-black/5 px-3 py-1 text-[10px] font-extrabold uppercase text-foreground/60 dark:bg-white/10">
           {tarefa.publica ? "🌐 Público" : "🔒 Privado"}
         </span>
+        {tarefa.prazo && (
+          <span
+            className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase ${
+              vencida ? "bg-red-500/15 text-red-600" : "bg-black/5 text-foreground/60 dark:bg-white/10"
+            }`}
+          >
+            {vencida ? "⚠️ Venceu em" : "📅 Prazo:"} {formatarDataCalendario(tarefa.prazo)}
+          </span>
+        )}
+        {tarefa.recorrencia === "MENSAL" && (
+          <span
+            className={`rounded-full px-3 py-1 text-[10px] font-extrabold uppercase ${
+              vencida ? "bg-red-500/15 text-red-600" : "bg-black/5 text-foreground/60 dark:bg-white/10"
+            }`}
+          >
+            🔁 Todo dia {tarefa.diaRecorrencia}
+          </span>
+        )}
       </div>
       <p className="mt-2 text-[10px] font-semibold text-foreground/40">
         Criado por {tarefa.autor.nome}
@@ -636,7 +786,10 @@ function AbaSolicitacoes({
             <Select
               name="nucleoDestino"
               defaultValue={Object.keys(NUCLEOS)[0]}
-              options={Object.entries(NUCLEOS).map(([key, n]) => ({ value: key, label: `${n.icon} ${n.label}` }))}
+              options={[
+                ...Object.entries(NUCLEOS).map(([key, n]) => ({ value: key, label: `${n.icon} ${n.label}` })),
+                { value: "TODOS", label: "📢 Todos os núcleos" },
+              ]}
             />
             <input
               name="assunto"
@@ -691,6 +844,93 @@ function AbaSolicitacoes({
             </GlassCard>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AbaCiranda({
+  podeEditar,
+  cirandas,
+}: {
+  podeEditar: boolean;
+  cirandas: Ciranda[];
+}) {
+  const [aberto, setAberto] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {podeEditar && (
+        <div>
+          <Button variant="secondary" onClick={() => setAberto((v) => !v)}>
+            ➕ Nova Ciranda
+          </Button>
+          {aberto && (
+            <GlassCard className="mt-3 p-5">
+              <form action={criarCiranda} className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-foreground/70">Ciranda da semana</label>
+                  <input
+                    name="semana"
+                    required
+                    placeholder="ex: 25 a 29 de agosto"
+                    className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-foreground/70">Tema</label>
+                  <input
+                    name="tema"
+                    required
+                    className="w-full rounded-xl border border-foreground/10 bg-white/70 px-4 py-2.5 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-foreground/70">Desenvolvimento</label>
+                  <textarea
+                    name="desenvolvimento"
+                    required
+                    rows={4}
+                    placeholder="Como vai ser desenvolvida — links colados aqui ficam clicáveis"
+                    className="w-full rounded-xl border border-foreground/10 bg-white/70 p-3 text-sm outline-none ring-imla-accent/40 focus:ring-2 dark:bg-white/5"
+                  />
+                </div>
+                <AnexosField />
+                <Button type="submit" className="self-end">
+                  Publicar Ciranda
+                </Button>
+              </form>
+            </GlassCard>
+          )}
+        </div>
+      )}
+
+      {cirandas.length === 0 && (
+        <p className="text-sm text-foreground/50">Nenhuma Ciranda cadastrada ainda.</p>
+      )}
+
+      <div className="flex flex-col gap-4">
+        {cirandas.map((c) => (
+          <GlassCard key={c.id} className="p-5">
+            <p className="text-[11px] font-extrabold uppercase tracking-wide text-imla-accent-dark">
+              🎪 Ciranda da semana: {c.semana}
+            </p>
+            <p className="mt-1 text-sm font-extrabold">Tema: {c.tema}</p>
+            <TextoFormatado texto={c.desenvolvimento} className="mt-2 text-sm text-foreground/70" />
+            <ListaAnexos anexos={c.anexos} />
+            <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-foreground/40">
+              <span>{c.autor.nome} · {formatarData(c.criadoEm)}</span>
+              {podeEditar && (
+                <form action={excluirCiranda}>
+                  <input type="hidden" name="id" value={c.id} />
+                  <button type="submit" className="font-bold text-red-500">
+                    🗑️ Excluir
+                  </button>
+                </form>
+              )}
+            </div>
+          </GlassCard>
+        ))}
       </div>
     </div>
   );

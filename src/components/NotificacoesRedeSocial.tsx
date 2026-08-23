@@ -14,7 +14,11 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
-export function NotificacoesRedeSocial() {
+export function NotificacoesRedeSocial({
+  descricao = "Receba uma notificação sempre que sair algo novo na Rede Social.",
+}: {
+  descricao?: string;
+} = {}) {
   const [suportado, setSuportado] = useState(false);
   const [status, setStatus] = useState<NotificationPermission | "carregando">("carregando");
   const [enviando, setEnviando] = useState(false);
@@ -29,6 +33,7 @@ export function NotificacoesRedeSocial() {
       !!VAPID_PUBLIC_KEY;
     setSuportado(ok);
     if (ok) setStatus(Notification.permission);
+    if (sessionStorage.getItem("imla:notificacoesDispensadas") === "true") setEscondido(true);
   }, []);
 
   if (!suportado || status === "granted" || status === "denied" || escondido) return null;
@@ -60,14 +65,15 @@ export function NotificacoesRedeSocial() {
         <span className="text-2xl">🔔</span>
         <div>
           <p className="text-sm font-extrabold">Quer ser avisado de novidades?</p>
-          <p className="text-xs text-foreground/60">
-            Receba uma notificação sempre que sair algo novo na Rede Social.
-          </p>
+          <p className="text-xs text-foreground/60">{descricao}</p>
         </div>
       </div>
       <div className="flex gap-2">
         <button
-          onClick={() => setEscondido(true)}
+          onClick={() => {
+            sessionStorage.setItem("imla:notificacoesDispensadas", "true");
+            setEscondido(true);
+          }}
           className="rounded-full px-3 py-2 text-xs font-bold text-foreground/50 hover:bg-black/5 dark:hover:bg-white/10"
         >
           Agora não

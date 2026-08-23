@@ -1,12 +1,51 @@
 import { prisma } from "@/lib/db";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { SALAS, NIVEIS_ALFABETIZACAO, type SalaKey, type NivelAlfabetizacaoKey } from "@/lib/config";
+import { GraficoDesenvolvimentoSala } from "@/components/pedagogico/GraficoDesenvolvimentoSala";
+import { SALAS, NIVEIS_ALFABETIZACAO, NIVEIS_MARE, type SalaKey, type NivelAlfabetizacaoKey } from "@/lib/config";
+
+const NIVEL_MARE_INDEX: Record<string, number> = Object.fromEntries(
+  NIVEIS_MARE.map((n, i) => [n.key, i + 1])
+);
 
 export default async function IndicadoresPage() {
   try {
     const alunos = await prisma.aluno.findMany({
-      include: { matriculaTurnoEstendido: true, avaliacoesAlfabetizacao: true },
+      include: { matriculaTurnoEstendido: true, avaliacoesAlfabetizacao: true, avaliacoesMare: true },
     });
+
+    // Curva de desenvolvimento (Tábua da Maré) por sala: média de todos os
+    // alunos e categorias daquele semestre, numa escala de 0-100%.
+    const acumuladoPorSala: Record<SalaKey, Map<string, { soma: number; qtd: number; ordem: number }>> = {
+      ROSA: new Map(),
+      AMARELA: new Map(),
+      VERDE: new Map(),
+      AZUL: new Map(),
+      CIRANDA_MUNDO: new Map(),
+    };
+
+    for (const a of alunos) {
+      for (const av of a.avaliacoesMare) {
+        const notas = Array.isArray(av.notas) ? (av.notas as string[]) : [];
+        if (notas.length === 0) continue;
+        const mediaAluno = notas.reduce((acc, n) => acc + (NIVEL_MARE_INDEX[n] ?? 1), 0) / notas.length;
+
+        const mapa = acumuladoPorSala[a.sala as SalaKey];
+        const atual = mapa.get(av.semestre) ?? { soma: 0, qtd: 0, ordem: av.criadoEm.getTime() };
+        atual.soma += mediaAluno;
+        atual.qtd += 1;
+        atual.ordem = Math.min(atual.ordem, av.criadoEm.getTime());
+        mapa.set(av.semestre, atual);
+      }
+    }
+
+    const curvasPorSala: Record<SalaKey, { semestre: string; percentual: number }[]> = Object.fromEntries(
+      Object.entries(acumuladoPorSala).map(([sala, mapa]) => [
+        sala,
+        Array.from(mapa.entries())
+          .sort((a, b) => a[1].ordem - b[1].ordem)
+          .map(([semestre, { soma, qtd }]) => ({ semestre, percentual: ((soma / qtd) / 5) * 100 })),
+      ])
+    ) as Record<SalaKey, { semestre: string; percentual: number }[]>;
 
     const totalAlunos = alunos.length;
     const apadrinhados = alunos.filter((a) => a.padrinho).length;
@@ -52,6 +91,18 @@ export default async function IndicadoresPage() {
             ))}
           </div>
         </GlassCard>
+
+        <div>
+          <p className="mb-3 font-extrabold">🌊 Curva de desenvolvimento (Tábua da Maré) por sala</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {Object.entries(SALAS).map(([key, s]) => (
+              <GlassCard key={key} className="p-5">
+                <p className="mb-2 text-sm font-extrabold">{s.icon} {s.label}</p>
+                <GraficoDesenvolvimentoSala dados={curvasPorSala[key as SalaKey]} cor={s.cor} />
+              </GlassCard>
+            ))}
+          </div>
+        </div>
 
         <GlassCard className="p-5">
           <p className="mb-4 font-extrabold">Diagnóstico de alfabetização (última avaliação)</p>
