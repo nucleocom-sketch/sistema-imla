@@ -15,7 +15,16 @@ export default async function CalendarioPage() {
       orderBy: { data: "asc" },
     });
 
-    return <CalendarioView eventos={eventos} podeEditar={sessao.papel === "ADMIN"} />;
+    const podeEditar = sessao.papel === "ADMIN" || sessao.papel === "NUCLEO";
+
+    return (
+      <CalendarioView
+        eventos={eventos}
+        podeEditar={podeEditar}
+        ehAdmin={sessao.papel === "ADMIN"}
+        usuarioId={sessao.userId}
+      />
+    );
   } catch {
     return (
       <GlassCard className="p-8 text-center">

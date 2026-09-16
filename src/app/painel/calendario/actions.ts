@@ -5,16 +5,16 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { obterSessao } from "@/lib/auth";
 
-async function exigirAdmin() {
+async function exigirGestaoOuNucleo() {
   const sessao = await obterSessao();
-  if (!sessao || sessao.papel !== "ADMIN") {
-    throw new Error("Apenas a coordenação pode alterar o calendário institucional.");
+  if (!sessao || (sessao.papel !== "ADMIN" && sessao.papel !== "NUCLEO")) {
+    throw new Error("Apenas a coordenação e os núcleos podem alterar o calendário institucional.");
   }
   return sessao;
 }
 
 export async function criarEvento(formData: FormData) {
-  const sessao = await exigirAdmin();
+  const sessao = await exigirGestaoOuNucleo();
 
   const titulo = z.string().min(1).parse(formData.get("titulo"));
   const descricao = (formData.get("descricao") as string) ?? "";
@@ -28,9 +28,13 @@ export async function criarEvento(formData: FormData) {
 }
 
 export async function excluirEvento(formData: FormData) {
-  await exigirAdmin();
+  const sessao = await exigirGestaoOuNucleo();
   const id = z.string().parse(formData.get("id"));
 
-  await prisma.eventoCalendario.delete({ where: { id } });
+  // Núcleos só podem apagar as próprias atividades — a coordenação pode
+  // apagar qualquer uma.
+  await prisma.eventoCalendario.deleteMany({
+    where: sessao.papel === "ADMIN" ? { id } : { id, autorId: sessao.userId },
+  });
   revalidatePath("/painel/calendario");
 }

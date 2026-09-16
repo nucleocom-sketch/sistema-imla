@@ -10,6 +10,7 @@ type Evento = {
   titulo: string;
   descricao: string | null;
   data: Date;
+  autorId: string;
   autor: { nome: string };
 };
 
@@ -26,7 +27,17 @@ function chaveDia(data: Date) {
   return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
 }
 
-export function CalendarioView({ eventos, podeEditar }: { eventos: Evento[]; podeEditar: boolean }) {
+export function CalendarioView({
+  eventos,
+  podeEditar,
+  ehAdmin,
+  usuarioId,
+}: {
+  eventos: Evento[];
+  podeEditar: boolean;
+  ehAdmin: boolean;
+  usuarioId: string;
+}) {
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getUTCFullYear());
   const [mes, setMes] = useState(hoje.getUTCMonth());
@@ -159,7 +170,7 @@ export function CalendarioView({ eventos, podeEditar }: { eventos: Evento[]; pod
                     adicionado por {ev.autor.nome}
                   </p>
                 </div>
-                {podeEditar && (
+                {(ehAdmin || ev.autorId === usuarioId) && (
                   <form action={excluirEvento}>
                     <input type="hidden" name="id" value={ev.id} />
                     <button type="submit" className="shrink-0 text-xs font-bold text-red-500">
